@@ -112,6 +112,22 @@ export const GISCUS = {
 } as const;
 
 /**
+ * Optional newsletter signup (REQ-039). Delegated to an email provider — no
+ * backend. Empty `actionUrl` disables the form (nothing is rendered).
+ *
+ * Buttondown: set `actionUrl` to
+ *   https://buttondown.com/api/emails/embed-subscribe/<your-username>
+ * and, in the Buttondown dashboard, enable RSS-to-email pointing at your public
+ * feed (e.g. https://your-domain/pt/rss.xml) so new posts are emailed automatically.
+ * Other providers work too — paste their form endpoint and set `emailField` to the
+ * field name they expect (Buttondown: "email", Mailchimp: "EMAIL").
+ */
+export const NEWSLETTER = {
+  actionUrl: "",
+  emailField: "email",
+} as const;
+
+/**
  * Optional analytics and ads (REQ-038). Every field is disabled by default: an
  * empty value emits no script and makes no third-party request, so the template
  * ships analytics- and ads-free. Enabling Google Analytics or AdSense brings

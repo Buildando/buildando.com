@@ -1,0 +1,121 @@
+---
+// Optional newsletter signup (REQ-039). Delegated to an email provider — no
+// backend. The plain <form> posts straight to the provider, so it works without
+// JavaScript; the provider handles storage, double opt-in, sending, and
+// unsubscribe. Renders nothing when NEWSLETTER.actionUrl is empty.
+import { NEWSLETTER } from "../config/site";
+import { useTranslations } from "../i18n";
+
+interface Props {
+  lang: string;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+{
+  NEWSLETTER.actionUrl && (
+    <section class="newsletter" aria-label={t("newsletter.title")}>
+      <div class="nl-inner">
+        <div class="nl-copy">
+          <h2>{t("newsletter.title")}</h2>
+          <p>{t("newsletter.description")}</p>
+        </div>
+        <form
+          class="nl-form"
+          action={NEWSLETTER.actionUrl}
+          method="post"
+          target="_blank"
+          rel="noopener"
+        >
+          <label class="nl-hidden" for="nl-email">
+            {t("newsletter.placeholder")}
+          </label>
+          <input
+            id="nl-email"
+            type="email"
+            name={NEWSLETTER.emailField}
+            placeholder={t("newsletter.placeholder")}
+            autocomplete="email"
+            required
+          />
+          <button type="submit">{t("newsletter.button")}</button>
+        </form>
+      </div>
+      <p class="nl-consent">{t("newsletter.consent")}</p>
+    </section>
+  )
+}
+
+<style>
+  .newsletter {
+    width: min(var(--content-width), 100% - 2rem);
+    margin: 3rem auto 0;
+    padding: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+  }
+  .nl-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .nl-copy h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .nl-copy p {
+    margin: 0.25rem 0 0;
+    color: var(--color-muted);
+  }
+  .nl-form {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1 1 18rem;
+    max-width: 26rem;
+  }
+  .nl-form input {
+    flex: 1;
+    font: inherit;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    color-scheme: light dark;
+  }
+  .nl-form button {
+    font: inherit;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-accent);
+    border-radius: 8px;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .nl-form button:hover {
+    filter: brightness(1.05);
+  }
+  .nl-consent {
+    margin: 0.75rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+  /* Accessible label, visually hidden. */
+  .nl-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

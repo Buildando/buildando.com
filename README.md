@@ -126,6 +126,22 @@ All off by default. Enable any of these in `src/config/site.ts` under `ANALYTICS
 Enabling GA or AdSense sets cookies and carries consent obligations (e.g. GDPR /
 LGPD) that are your responsibility — the template ships no consent banner.
 
+## Newsletter
+
+Off by default, no backend. The signup form posts straight to an email provider,
+which handles storage, double opt-in, sending, and unsubscribe. Set `NEWSLETTER`
+in `src/config/site.ts` (empty `actionUrl` renders no form):
+
+- **Buttondown** (recommended): set `actionUrl` to
+  `https://buttondown.com/api/emails/embed-subscribe/<your-username>`, then in the
+  Buttondown dashboard enable **RSS-to-email** pointing at your public feed
+  (e.g. `https://your-domain/pt/rss.xml`) — new posts are emailed automatically.
+- **Other providers**: paste their form endpoint and set `emailField` to the
+  field name they expect (Buttondown: `email`, Mailchimp: `EMAIL`).
+
+The form works without JavaScript. Consent/cookie obligations are yours; a short
+consent line ships with the form, but no full consent flow.
+
 ## Deploying to HostGator
 
 HostGator has **no official CLI**. Deployment is automated by GitHub Actions in

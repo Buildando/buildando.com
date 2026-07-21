@@ -64,6 +64,10 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(html).not.toContain("plausible.io");
   });
 
+  it("renders no newsletter form by default (REQ-039)", () => {
+    expect(read("pt", "index.html")).not.toContain('class="newsletter"');
+  });
+
   it("renders the home facet filter, hidden until JS (REQ-035)", () => {
     const html = read("pt", "index.html");
     expect(html).toContain('id="filter-bar" hidden');
