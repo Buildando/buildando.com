@@ -1,134 +1,153 @@
-# Buildando — plataforma de blog estático
+# Buildando — static blog platform
 
-Um blog estático, rápido e **forkável**, construído com [Astro](https://astro.build).
-Conteúdo em markdown, **sem backend**, SEO forte por construção, busca no cliente
-e comentários via **GitHub Discussions**. Publica em qualquer hospedagem estática
-— aqui, HostGator.
+A fast, **forkable** static blog built with [Astro](https://astro.build). Content
+in markdown, **no backend**, strong SEO by construction, client-side search, and
+comments via **GitHub Discussions**. Deploys to any static host — here, HostGator.
 
-Este repositório é ao mesmo tempo o blog [buildando.com](https://buildando.com) e
-um _template_: faça fork, edite **um** arquivo de configuração, troque o logo e o
-blog é seu.
+This repository is both the [buildando.com](https://buildando.com) blog and a
+_template_: fork it, edit **one** configuration file, swap the logo, and the blog
+is yours.
 
-> A especificação completa (SDD) que rege este projeto está em
+## Using this template
+
+On GitHub, click **“Use this template” → Create a new repository** to generate
+your own blog from here (or fork it).
+
+> ⚠️ **This repository ships with Buildando's real identity as an example** —
+> name, author, social links (`@buildando`), domain, and the giscus repository.
+> Before publishing, **replace all of it** in `src/config/site.ts` and swap the
+> assets in `public/` (logo and social image). Step by step in
+> [Forking](#forking-customize-everything).
+>
+> The example posts and home hero (`src/content/`) are demo content too: delete
+> them and write your own.
+
+Quick summary: edit `src/config/site.ts` → swap `public/favicon.svg` and
+`public/og-default.svg` → write posts in `src/content/posts/` → configure deploy
+and giscus. Each step is detailed below.
+
+> The full spec (SDD) that governs this project lives in
 > [`.specs/2026-07-20-static-blog-platform.md`](.specs/2026-07-20-static-blog-platform.md).
-> Cada requisito `REQ-xxx` é rastreável até o código.
+> Every `REQ-xxx` requirement traces to the code.
 
-## O que vem pronto
+## What's included
 
-- **Escrever = criar uma pasta.** Um post é um diretório em `src/content/posts/`
-  com um `index.md` e as imagens ao lado. Nada mais no projeto muda.
-- **Frontmatter validado no build.** Campo obrigatório faltando quebra o build
-  apontando o post e o campo.
-- **SEO automático** em toda página: `<title>`, description, canonical, Open
-  Graph, Twitter Card, JSON-LD, `sitemap.xml`, `robots.txt` e feed RSS.
-- **Facetas** por tag e por categoria, geradas a partir do conteúdo.
-- **Paginação estática** opcional (`POSTS_PER_PAGE`): `0` mostra tudo numa página
-  (com o filtro por chips); um número positivo gera páginas numeradas rastreáveis.
-- **Busca full-text no cliente** ([Pagefind](https://pagefind.app)), sem servidor.
-- **Comentários** via [giscus](https://giscus.app) (GitHub Discussions), carregados
-  sob demanda.
-- **Tema claro/escuro** com botão no header, preferência lembrada e sem flash na carga.
-- **Multi-idiomas (i18n)**: rotas por locale (`/pt/`, `/en/`), interface traduzida,
-  seletor de idioma, `hreflang` e feed por idioma.
-- **Deploy automático** para HostGator via GitHub Actions (rsync/SSH).
+- **Writing = creating a folder.** A post is a directory in `src/content/posts/`
+  with an `index.md` and its images alongside. Nothing else in the project changes.
+- **Frontmatter validated at build.** A missing required field fails the build,
+  naming the post and the field.
+- **Automatic SEO** on every page: `<title>`, description, canonical, Open Graph,
+  Twitter Card, JSON-LD, `sitemap.xml`, `robots.txt`, and an RSS feed.
+- **Facets** by tag and category, generated from the content.
+- **Optional static pagination** (`POSTS_PER_PAGE`): `0` shows every post on one
+  page (with the chip filter); a positive number generates crawlable numbered pages.
+- **Client-side full-text search** ([Pagefind](https://pagefind.app)), no server.
+- **Comments** via [giscus](https://giscus.app) (GitHub Discussions), loaded on
+  demand.
+- **Light/dark theme** with a header toggle, remembered, no flash on load.
+- **Internationalization (i18n)**: per-locale routes (`/pt/`, `/en/`), translated
+  interface, a language switcher, `hreflang`, and a per-locale feed.
+- **Automatic deploy** to HostGator via GitHub Actions (rsync/SSH).
 
-## Rodando localmente
+## Running locally
 
 ```bash
 npm install
-npm run dev        # servidor de desenvolvimento (rascunhos visíveis)
-npm run build      # gera dist/ (astro build + índice de busca) — rascunhos excluídos
-npm run preview    # serve o dist/ gerado
-npm test           # testes (unitários; asserções de build rodam se dist/ existir)
-npm run test:build # build + asserções sobre o dist/
+npm run dev        # dev server (drafts visible)
+npm run build      # builds dist/ (astro build + search index) — drafts excluded
+npm run preview    # serves the built dist/
+npm test           # tests (unit; build assertions run when dist/ exists)
+npm run test:build # build + assertions over dist/
 ```
 
-Requer Node 22+ (veja `.nvmrc`).
+Requires Node 22+ (see `.nvmrc`).
 
-## Escrevendo um post
+## Writing a post
 
-Crie uma pasta em `src/content/posts/` e um `index.md`:
+Create a folder in `src/content/posts/` with an `index.md`:
 
 ```markdown
 ---
-title: "Título do post"
-description: "Resumo em uma frase — vira snippet de busca e preview social."
+title: "Post title"
+description: "One-sentence summary — becomes the search snippet and social preview."
 publishDate: 2026-07-20
-category: "Boas Práticas"
-tags: [oo, testes]
-cover: ./capa.png        # imagem colocada na mesma pasta (opcional)
-coverAlt: "Descrição da capa"
-draft: false             # true esconde da produção
+category: "Best Practices"
+tags: [oo, testing]
+cover: ./cover.png       # image colocated in the same folder (optional)
+coverAlt: "Cover description"
+draft: false             # true hides it from production
 ---
 
-Seu conteúdo em **markdown** aqui.
+Your **markdown** content here.
 ```
 
-Obrigatórios: `title`, `description`, `publishDate`. Todo o resto tem padrão.
-Veja `src/content/config.ts` para o schema completo.
+Required: `title`, `description`, `publishDate`. Everything else has a default.
+See `src/content/config.ts` for the full schema.
 
-## Fazendo fork (personalizar tudo)
+## Forking (customize everything)
 
-1. **Edite `src/config/site.ts`** — é a única superfície de configuração: nome,
-   domínio, autor, cores, fontes, links sociais, navegação, giscus, analytics,
-   `THEME` (tema padrão / travar tema) e `I18N` (idiomas).
-2. **Troque** `public/favicon.svg` e `public/og-default.svg`.
-3. **Configure os comentários**: torne o repositório público, ative _Discussions_,
-   instale o [app giscus](https://github.com/apps/giscus), pegue `repoId` e
-   `categoryId` em [giscus.app](https://giscus.app) e preencha `GISCUS` no config.
-4. **Idiomas**: adicione/remova locales em `I18N` e traduza as strings em
-   `src/i18n/ui.ts`. Cada post declara seu idioma com `lang:` e liga traduções com
-   `translations:`. Um só idioma? Deixe apenas um locale em `I18N`.
-5. **Tema**: mude `THEME.default` para `"light"` ou `"dark"`, ou
-   `THEME.allowToggle: false` para travar e esconder o botão.
-6. **Topo da home**: edite `src/content/home/<locale>.md` (ex.: `pt.md`, `en.md`) —
-   é markdown livre, renderizado com o CSS do site. Sem esse arquivo, a home cai
-   no nome do site + descrição.
+1. **Edit `src/config/site.ts`** — the single configuration surface: name,
+   domain, author, colors, fonts, social links, navigation, giscus, analytics,
+   `POSTS_PER_PAGE`, `THEME` (default theme / lock the theme), and `I18N` (locales).
+2. **Swap** `public/favicon.svg` and `public/og-default.svg`.
+3. **Set up comments**: make the repository public, enable _Discussions_, install
+   the [giscus app](https://github.com/apps/giscus), get `repoId` and `categoryId`
+   at [giscus.app](https://giscus.app), and fill in `GISCUS` in the config.
+4. **Locales**: add/remove locales in `I18N` and translate the strings in
+   `src/i18n/ui.ts`. Each post declares its language with `lang:` and links its
+   translations with `translations:`. Single language? Keep just one locale in `I18N`.
+5. **Theme**: set `THEME.default` to `"light"` or `"dark"`, or
+   `THEME.allowToggle: false` to lock it and hide the toggle.
+6. **Home hero**: edit `src/content/home/<locale>.md` (e.g. `pt.md`, `en.md`) —
+   free-form markdown rendered with the site's CSS. Without the file, the home
+   falls back to the site name + description.
 
-Nenhum outro arquivo carrega identidade — se `buildando`, o domínio ou o autor
-aparecerem fora do config, é bug (é o que o `REQ-030` garante).
+No other file carries identity — if `buildando`, the domain, or the author appear
+outside the config, it's a bug (that's what `REQ-030` guarantees).
 
-## Deploy no HostGator
+## Deploying to HostGator
 
-O HostGator **não tem CLI oficial**. O deploy é automatizado pelo GitHub Actions
-em `.github/workflows/deploy.yml`.
+HostGator has **no official CLI**. Deployment is automated by GitHub Actions in
+`.github/workflows/deploy.yml`.
 
-### Caminho principal: rsync sobre SSH (porta 2222)
+### Primary path: rsync over SSH (port 2222)
 
-1. Peça ao suporte do HostGator para **habilitar SSH** (fica na porta `2222`,
-   desligado por padrão em planos compartilhados).
-2. Gere um par de chaves e coloque a pública em `~/.ssh/authorized_keys` no servidor.
-3. Configure os _secrets_ do repositório (Settings → Secrets → Actions):
+1. Ask HostGator support to **enable SSH** (it's on port `2222`, off by default on
+   shared plans).
+2. Generate a key pair and put the public half in `~/.ssh/authorized_keys` on the
+   server.
+3. Configure the repository _secrets_ (Settings → Secrets → Actions):
    `HOSTGATOR_SSH_HOST`, `HOSTGATOR_SSH_USER`, `HOSTGATOR_SSH_KEY`,
-   `HOSTGATOR_TARGET_DIR` (ex.: `/home/USUARIO/public_html`).
-4. `git push` na branch `main` dispara build + deploy.
+   `HOSTGATOR_TARGET_DIR` (e.g. `/home/USER/public_html`).
+4. `git push` to the `main` branch triggers build + deploy.
 
 ### Fallback: FTP
 
-Se o plano não liberar SSH, troque o passo de deploy por uma ação de FTP (ex.:
-`SamKirkland/FTP-Deploy-Action`) usando secrets `FTP_SERVER`, `FTP_USERNAME`,
-`FTP_PASSWORD` e `server-dir: public_html/`. O build é o mesmo; só muda o transporte.
+If the plan won't enable SSH, swap the deploy step for an FTP action (e.g.
+`SamKirkland/FTP-Deploy-Action`) using secrets `FTP_SERVER`, `FTP_USERNAME`,
+`FTP_PASSWORD` and `server-dir: public_html/`. The build is the same; only the
+transport changes.
 
-Nenhuma credencial vai para o repositório — todas vivem nos secrets do Actions.
+No credential goes into the repository — they all live in Actions secrets.
 
-## Estrutura
+## Structure
 
 ```text
 src/
-  config/site.ts        # ← a única superfície de configuração (fork começa aqui)
+  config/site.ts        # ← the single configuration surface (forking starts here)
   content/
-    config.ts           # schema do frontmatter (validado no build)
-    posts/<slug>/        # um diretório por post
-  layouts/               # estrutura estática das páginas
-  components/            # header, footer, SEO, giscus, busca, card
-  pages/                 # rotas: home, post, tag, categoria, busca, rss, robots
-  styles/global.css      # tipografia e tokens de tema
-public/                  # logo, og default, .htaccess (passa direto pro dist/)
+    config.ts           # frontmatter schema (validated at build)
+    posts/<slug>/        # one directory per post
+  layouts/               # static page structure
+  components/            # header, footer, SEO, giscus, search, card
+  pages/                 # routes: home, post, tag, category, search, rss, robots
+  styles/global.css      # typography and theme tokens
+public/                  # logo, og default, .htaccess (passed straight to dist/)
 .github/workflows/       # deploy
-.specs/                  # especificação SDD
-.skills/                 # técnicas usadas (Astro, SEO, giscus, Pagefind, deploy)
+.specs/                  # SDD specification
+.skills/                 # techniques used (Astro, SEO, giscus, Pagefind, deploy)
 ```
 
-## Licença
+## License
 
-Defina a licença ao fazer fork (sugestão: MIT).
+Choose a license when you fork (suggested: MIT).

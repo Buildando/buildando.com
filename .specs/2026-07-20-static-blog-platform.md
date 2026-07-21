@@ -122,6 +122,10 @@ SEO is not an afterthought bolted on at the end; it is a set of build outputs �
 
 - `REQ-029`: The repository shall document the fork procedure, and shall ship exactly one example post that exercises every structural feature — frontmatter fields, colocated images, tags, category, cover, and the discussion embed — so that it doubles as the authoring template.
 
+### Analytics and monetization
+
+- `REQ-038`: The configuration surface shall let the blog owner optionally enable Google Analytics (GA4) and Google AdSense by supplying their ids. Both shall be disabled by default; when an id is empty the platform shall emit no corresponding script and make no third-party request, so the template ships analytics- and ads-free and each owner opts in. This is separate from, and coexists with, the existing privacy-friendly analytics option, and any owner enabling it is responsible for the consent/cookie obligations that GA and AdSense carry.
+
 ## Acceptance Criteria
 
 - Given a new post directory with valid frontmatter and a colocated image, when the site is built, then the post appears in the home listing, its tag and category facet pages, the sitemap, the RSS feed, and the search index, with no other file changed.
@@ -412,6 +416,7 @@ with a fixture, image-optimization assertions, and the architecture rules.
 - `REQ-034`: Done. `home` collection in `src/content/config.ts`; per-locale entries `src/content/home/{pt,en}.md`; rendered in the hero by `src/pages/[lang]/index.astro` with a fallback to name + localized description. Verified in `dist`: both home heroes render from markdown (heading ids present). Test pending.
 - `REQ-035`: Done. Pure logic in `src/lib/facet-filter.ts` (predicate + URL mapping, unit-tested in `test/facet-filter.test.ts`); chips, localized `Intl` month/year selectors, the per-facet "show more" collapse, and the enhancement island in `src/pages/[lang]/index.astro`; card metadata (`data-category/tags/date`) in `src/components/PostCard.astro`. Verified in `dist`: filter bar `hidden` for no-JS, category/tag chips, localized month names (Janeiro/July…), month/year selects, "show more" markup, cards carry metadata. Visually stress-tested at 14 categories / 48 tags.
 - `REQ-037`: Done. `POSTS_PER_PAGE` in `src/config/site.ts`; Astro `paginate` in the listing routes, now `src/pages/[lang]/[...page].astro`, `.../tags/[tag]/[...page].astro`, `.../categories/[category]/[...page].astro`; `src/components/Pagination.astro` (prev/next, `rel` hints, localized status). The facet filter shows only when a listing fits one page (`page.lastPage === 1`); the hero renders on page 1 only. Verified with the default `0` (one page, filter present, no pagination) and, with a temporary size of 1, two crawlable pages (`/pt/2/`), the pagination nav, `rel="prev"/"next"`, the filter hidden, and paginated tag pages.
+- `REQ-038`: Pending (backlog). Optional Google Analytics (GA4) + AdSense opt-in from the config surface, disabled by default. Today only a generic privacy-friendly `ANALYTICS.id` exists (Plausible-style); GA4 and AdSense wiring, plus their consent obligations, are not yet added.
 - `REQ-036`: Done. `src/components/SearchModal.astro` (native `<dialog>`, lazy Pagefind, `/` and Ctrl/Cmd+K), mounted once in `src/layouts/BaseLayout.astro`; header trigger in `src/components/Header.astro` degrading to a `/search` link. Verified in `dist`: trigger + dialog on every page. `/search` still covers `REQ-020`.
 
 ### Verification performed

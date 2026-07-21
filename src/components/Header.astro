@@ -22,7 +22,7 @@ const switchHref = (code: string) => langSwitch?.[code] ?? localizedPath(code, r
       <span>{SITE.name}</span>
     </a>
 
-    <nav aria-label="Principal">
+    <nav aria-label={t("nav.aria")}>
       <ul>
         {
           NAV.map((item) => {
