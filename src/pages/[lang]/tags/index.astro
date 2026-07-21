@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getTags } from "../../../lib/posts";
+import {
+  locales,
+  useTranslations,
+  localizedPath,
+  hreflangAlternates,
+} from "../../../i18n";
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const t = useTranslations(lang);
+const tags = [...(await getTags(lang)).entries()].sort(
+  (a, b) => b[1].length - a[1].length,
+);
+---
+
+<BaseLayout
+  title={t("tags.title")}
+  description={t("tags.title")}
+  path={localizedPath(lang, "/tags/")}
+  lang={lang}
+  alternates={hreflangAlternates("/tags/")}
+>
+  <h1>{t("tags.title")}</h1>
+  <ul class="cloud">
+    {tags.map(([tag, posts]) => (
+      <li><a href={localizedPath(lang, `/tags/${tag}/`)}>#{tag} <span>{posts.length}</span></a></li>
+    ))}
+  </ul>
+</BaseLayout>
+
+<style>
+  .cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+  }
+  .cloud a {
+    display: inline-block;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--color-text);
+  }
+  .cloud span {
+    color: var(--color-muted);
+    font-size: 0.8rem;
+  }
+</style>

@@ -1,0 +1,32 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import PostCard from "../../../components/PostCard.astro";
+import { getCategories } from "../../../lib/posts";
+import { locales, useTranslations, localizedPath } from "../../../i18n";
+
+// One listing page per distinct category, per locale (REQ-019, REQ-032).
+export async function getStaticPaths() {
+  const paths = [];
+  for (const lang of locales) {
+    const categories = await getCategories(lang);
+    for (const [category, posts] of categories) {
+      paths.push({ params: { lang, category }, props: { posts } });
+    }
+  }
+  return paths;
+}
+
+const { lang, category } = Astro.params;
+const { posts } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<BaseLayout
+  title={category}
+  description={`${t("category.for")} ${category}`}
+  path={localizedPath(lang, `/categories/${category}/`)}
+  lang={lang}
+>
+  <h1>{category}</h1>
+  {posts.map((post) => <PostCard post={post} />)}
+</BaseLayout>

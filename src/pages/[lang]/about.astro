@@ -1,0 +1,36 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { SITE } from "../../config/site";
+import {
+  locales,
+  useTranslations,
+  localizedPath,
+  hreflangAlternates,
+} from "../../i18n";
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const t = useTranslations(lang);
+
+const body: Record<string, string> = {
+  pt: `Olá, eu sou ${SITE.author}. Escrevo sobre boas práticas de desenvolvimento de software, orientação a objetos e o ofício de escrever bom código.`,
+  en: `Hi, I'm ${SITE.author}. I write about software development best practices, object-oriented design, and the craft of writing good code.`,
+};
+---
+
+<BaseLayout
+  title={t("about.title")}
+  description={t("about.title")}
+  path={localizedPath(lang, "/about")}
+  lang={lang}
+  alternates={hreflangAlternates("/about")}
+>
+  <h1>{t("about.title")}</h1>
+  <div class="prose">
+    <p>{body[lang] ?? body.pt}</p>
+    <p><code>src/pages/[lang]/about.astro</code></p>
+  </div>
+</BaseLayout>

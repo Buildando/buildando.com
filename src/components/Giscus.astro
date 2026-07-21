@@ -1,0 +1,85 @@
+---
+// GitHub Discussions embed (REQ-022–REQ-024). Configured once from the config
+// surface. Loaded lazily: the giscus script is injected only when the section
+// scrolls into view, so a post page ships no discussion JS until then (REQ-017).
+import { GISCUS } from "../config/site";
+import { useTranslations } from "../i18n";
+
+interface Props {
+  /** Per-post mapping override (REQ-024); falls back to the configured mapping. */
+  term?: string;
+  lang: string;
+}
+const { term, lang } = Astro.props;
+const t = useTranslations(lang);
+const configured = GISCUS.repoId && GISCUS.categoryId;
+---
+
+<section class="discussion" aria-label={t("post.comments")}>
+  <h2>{t("post.comments")}</h2>
+  {
+    configured ? (
+      <div
+        id="giscus-mount"
+        data-repo={GISCUS.repo}
+        data-repoid={GISCUS.repoId}
+        data-category={GISCUS.category}
+        data-categoryid={GISCUS.categoryId}
+        data-mapping={term ? "specific" : GISCUS.mapping}
+        data-term={term ?? ""}
+        data-reactions={GISCUS.reactionsEnabled}
+        data-theme={GISCUS.theme}
+        data-lang={lang}
+      />
+    ) : (
+      <p class="giscus-todo">
+        {t("post.comments.todo")} <code>src/config/site.ts</code> · giscus.app
+      </p>
+    )
+  }
+</section>
+
+<script>
+  const mount = document.getElementById("giscus-mount");
+  if (mount) {
+    const load = () => {
+      if (mount.dataset.loaded) return;
+      mount.dataset.loaded = "true";
+      const d = mount.dataset;
+      const s = document.createElement("script");
+      s.src = "https://giscus.app/client.js";
+      s.async = true;
+      s.crossOrigin = "anonymous";
+      s.setAttribute("data-repo", d.repo!);
+      s.setAttribute("data-repo-id", d.repoid!);
+      s.setAttribute("data-category", d.category!);
+      s.setAttribute("data-category-id", d.categoryid!);
+      s.setAttribute("data-mapping", d.mapping!);
+      if (d.term) s.setAttribute("data-term", d.term);
+      s.setAttribute("data-reactions-enabled", d.reactions!);
+      s.setAttribute("data-emit-metadata", "0");
+      s.setAttribute("data-theme", d.theme!);
+      s.setAttribute("data-lang", d.lang!);
+      mount.appendChild(s);
+    };
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        load();
+        io.disconnect();
+      }
+    });
+    io.observe(mount);
+  }
+</script>
+
+<style>
+  .discussion {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .giscus-todo {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+  }
+</style>

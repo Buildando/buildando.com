@@ -1,0 +1,84 @@
+---
+import { Image } from "astro:assets";
+import type { Post } from "../lib/posts";
+import { postPath } from "../lib/posts";
+import { formatDate, isoDate } from "../lib/seo";
+import { localizedPath } from "../i18n";
+
+interface Props {
+  post: Post;
+}
+const { post } = Astro.props;
+const { data } = post;
+const lang = data.lang;
+---
+
+<article class="card">
+  {
+    data.cover && (
+      <a href={postPath(post)} class="cover">
+        <Image src={data.cover} alt={data.coverAlt ?? ""} widths={[320, 640]} loading="lazy" />
+      </a>
+    )
+  }
+  <div class="body">
+    <h2><a href={postPath(post)}>{data.title}</a></h2>
+    <p class="meta">
+      <time datetime={isoDate(data.publishDate)}>{formatDate(data.publishDate, lang)}</time>
+      {data.category && (
+        <> · <a href={localizedPath(lang, `/categories/${data.category}/`)}>{data.category}</a></>
+      )}
+    </p>
+    <p>{data.description}</p>
+    {
+      data.tags.length > 0 && (
+        <ul class="tags">
+          {data.tags.map((tag) => (
+            <li><a href={localizedPath(lang, `/tags/${tag}/`)}>#{tag}</a></li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .card {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .cover img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+  }
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.4rem;
+  }
+  h2 a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  h2 a:hover {
+    color: var(--color-accent);
+  }
+  .meta {
+    color: var(--color-muted);
+    font-size: 0.85rem;
+    margin: 0 0 0.5rem;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+  }
+  .tags a {
+    color: var(--color-muted);
+  }
+</style>

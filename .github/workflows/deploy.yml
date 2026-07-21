@@ -1,0 +1,49 @@
+name: Deploy to HostGator
+
+# Builds the static site and deploys dist/ to HostGator public_html on push to
+# main (REQ-025). Transfers only the build output; every credential comes from
+# GitHub Actions secrets, never the repository (REQ-026).
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   HOSTGATOR_SSH_HOST     e.g. gatorNNNN.hostgator.com  (or your server host)
+#   HOSTGATOR_SSH_USER     your cPanel username
+#   HOSTGATOR_SSH_KEY      a private key whose public half is in ~/.ssh/authorized_keys on the host
+#   HOSTGATOR_TARGET_DIR   absolute path, e.g. /home/USER/public_html
+#
+# SSH on HostGator shared hosting is on port 2222 and is disabled by default —
+# enable it via support first. If SSH cannot be enabled, use the FTP fallback
+# documented in README.md instead of this workflow.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostgator
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build # astro build + pagefind index
+
+      - name: Deploy via rsync over SSH (port 2222)
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avzr --delete
+          path: dist/
+          remote_path: ${{ secrets.HOSTGATOR_TARGET_DIR }}
+          remote_host: ${{ secrets.HOSTGATOR_SSH_HOST }}
+          remote_port: 2222
+          remote_user: ${{ secrets.HOSTGATOR_SSH_USER }}
+          remote_key: ${{ secrets.HOSTGATOR_SSH_KEY }}

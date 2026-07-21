@@ -1,0 +1,18 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# secrets — never commit deploy credentials (REQ-026)
+.env
+.env.*
+*.pem
+!public/**
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

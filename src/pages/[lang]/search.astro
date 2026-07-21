@@ -1,0 +1,28 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Search from "../../components/Search.astro";
+import {
+  locales,
+  useTranslations,
+  localizedPath,
+  hreflangAlternates,
+} from "../../i18n";
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+const t = useTranslations(lang);
+---
+
+<BaseLayout
+  title={t("search.title")}
+  description={t("search.title")}
+  path={localizedPath(lang, "/search")}
+  lang={lang}
+  alternates={hreflangAlternates("/search")}
+>
+  <h1>{t("search.title")}</h1>
+  <Search lang={lang} />
+</BaseLayout>

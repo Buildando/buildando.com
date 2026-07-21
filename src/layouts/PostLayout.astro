@@ -1,0 +1,119 @@
+---
+import { Image } from "astro:assets";
+import BaseLayout from "./BaseLayout.astro";
+import Giscus from "../components/Giscus.astro";
+import type { Post } from "../lib/posts";
+import { formatDate, isoDate, absoluteUrl } from "../lib/seo";
+import { useTranslations, localizedPath, localeMeta } from "../i18n";
+
+interface Props {
+  post: Post;
+  /** Page/UI locale (drives all chrome). May differ from the post's content language. */
+  uiLang: string;
+  langSwitch: Record<string, string>;
+  alternates: { hreflang: string; href: string }[];
+  canonicalPath: string;
+}
+const { post, uiLang, langSwitch, alternates, canonicalPath } = Astro.props;
+const { data } = post;
+
+// Chrome follows the selected page locale (REQ-033); content keeps its own language.
+const contentLang = data.lang;
+const isFallback = uiLang !== contentLang;
+const t = useTranslations(uiLang);
+
+// Resolve the social image (REQ-012).
+const ogSrc = data.ogImage ?? data.cover;
+const image = typeof ogSrc === "string" ? ogSrc : ogSrc?.src;
+
+const path = `/${uiLang}/posts/${post.slug}/`;
+const canonicalURL = data.canonicalURL ?? absoluteUrl(canonicalPath);
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  path={path}
+  lang={uiLang}
+  contentLang={contentLang}
+  type="article"
+  image={image}
+  canonicalURL={canonicalURL}
+  publishDate={data.publishDate}
+  updatedDate={data.updatedDate}
+  author={data.author}
+  keywords={data.keywords}
+  alternates={alternates}
+  langSwitch={langSwitch}
+>
+  <!-- The article body keeps its own language for correct pronunciation/indexing. -->
+  <article lang={isFallback ? localeMeta(contentLang).htmlLang : undefined}>
+    <header class="post-header">
+      <h1>{data.title}</h1>
+      <p class="meta">
+        <time datetime={isoDate(data.publishDate)}>{formatDate(data.publishDate, uiLang)}</time>
+        {data.updatedDate && <> · {t("post.updated")} {formatDate(data.updatedDate, uiLang)}</>}
+        {data.category && (
+          <> · <a href={localizedPath(contentLang, `/categories/${data.category}/`)}>{data.category}</a></>
+        )}
+      </p>
+    </header>
+
+    {
+      data.cover && (
+        <Image
+          class="cover"
+          src={data.cover}
+          alt={data.coverAlt ?? ""}
+          widths={[480, 800, 1200]}
+          loading="eager"
+        />
+      )
+    }
+
+    <div class="prose">
+      <slot />
+    </div>
+
+    {
+      data.tags.length > 0 && (
+        <ul class="tags">
+          {data.tags.map((tag) => (
+            <li><a href={localizedPath(contentLang, `/tags/${tag}/`)}>#{tag}</a></li>
+          ))}
+        </ul>
+      )
+    }
+  </article>
+
+  <Giscus term={data.discussion} lang={uiLang} />
+</BaseLayout>
+
+<style>
+  .post-header h1 {
+    margin-bottom: 0.25rem;
+  }
+  .meta {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    margin-top: 0;
+  }
+  .cover {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin: 1rem 0 2rem;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0 0;
+    font-size: 0.9rem;
+  }
+  .tags a {
+    color: var(--color-muted);
+  }
+</style>

@@ -1,0 +1,86 @@
+---
+// Static page structure, defined once and separate from content (REQ-008).
+// Injects brand tokens, the light/dark theme system (REQ-031), and sets the
+// page language (REQ-032) from the config surface (REQ-009).
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE, BRAND, THEME } from "../config/site";
+import { localeMeta } from "../i18n";
+// Self-hosted variable fonts (no external request). Bundled into the build.
+import "@fontsource-variable/inter";
+import "@fontsource-variable/space-grotesk";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  path: string;
+  lang: string;
+  /** Content language, when it differs from the page locale (JSON-LD inLanguage). */
+  contentLang?: string;
+  image?: string;
+  type?: "website" | "article";
+  canonicalURL?: string;
+  publishDate?: Date;
+  updatedDate?: Date;
+  author?: string;
+  keywords?: string[];
+  alternates?: { hreflang: string; href: string }[];
+  /** Per-locale switcher targets, when the default segment-swap is not correct. */
+  langSwitch?: Record<string, string>;
+}
+
+const { lang, langSwitch, ...rest } = Astro.props;
+const htmlLang = localeMeta(lang).htmlLang;
+
+type Palette = (typeof BRAND.colors)["light"];
+const colorVars = (c: Palette) =>
+  `--color-bg:${c.bg};--color-surface:${c.surface};--color-text:${c.text};` +
+  `--color-muted:${c.muted};--color-accent:${c.accent};` +
+  `--color-accent-contrast:${c.accentContrast};--color-border:${c.border};`;
+
+const base = BRAND.colors[THEME.default];
+const tokens =
+  `:root{${colorVars(base)}` +
+  `--font-body:${BRAND.fonts.body};--font-heading:${BRAND.fonts.heading};` +
+  `--font-mono:${BRAND.fonts.mono};--content-width:${BRAND.contentWidth};` +
+  `color-scheme:${THEME.default};}` +
+  `:root[data-theme="light"]{${colorVars(BRAND.colors.light)}color-scheme:light;}` +
+  `:root[data-theme="dark"]{${colorVars(BRAND.colors.dark)}color-scheme:dark;}`;
+
+// Shiki dark activation: covers no-JS (falls back to THEME.default) and the toggle.
+const darkSel =
+  THEME.default === "dark" ? ':root:not([data-theme="light"])' : ':root[data-theme="dark"]';
+const shikiCss =
+  `${darkSel} .astro-code,${darkSel} .astro-code span{` +
+  `color:var(--shiki-dark)!important;background-color:var(--shiki-dark-bg)!important;` +
+  `font-style:var(--shiki-dark-font-style)!important;font-weight:var(--shiki-dark-font-weight)!important;` +
+  `text-decoration:var(--shiki-dark-text-decoration)!important;}`;
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <BaseHead lang={lang} {...rest} />
+    <style is:inline set:html={tokens + shikiCss}></style>
+    {
+      THEME.allowToggle && (
+        <script is:inline define:vars={{ def: THEME.default }}>
+          try {
+            var s = localStorage.getItem("theme");
+            document.documentElement.dataset.theme =
+              s === "light" || s === "dark" ? s : def;
+          } catch (e) {}
+        </script>
+      )
+    }
+  </head>
+  <body>
+    <Header lang={lang} langSwitch={langSwitch} />
+    <main class="wrap">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>

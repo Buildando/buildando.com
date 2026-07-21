@@ -1,0 +1,12 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { defaultLocale, useTranslations, localizedPath } from "../i18n";
+
+const lang = defaultLocale;
+const t = useTranslations(lang);
+---
+
+<BaseLayout title={t("notfound.title")} description="404" path="/404" lang={lang}>
+  <h1>404</h1>
+  <p>{t("notfound.body")} <a href={localizedPath(lang, "/")}>{t("notfound.home")}</a>.</p>
+</BaseLayout>

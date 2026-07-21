@@ -1,0 +1,61 @@
+// UI string dictionary (REQ-032). One entry per locale. Missing keys fall back
+// to the default locale, then to the key itself. Add a locale in
+// src/config/site.ts and add its strings here.
+
+export const ui: Record<string, Record<string, string>> = {
+  pt: {
+    "nav.home": "Início",
+    "nav.search": "Buscar",
+    "nav.about": "Sobre o Autor",
+    "home.latest": "Últimos posts",
+    "home.empty": "Nenhum post publicado ainda.",
+    "post.updated": "atualizado em",
+    "post.comments": "Comentários",
+    "post.comments.todo":
+      "Comentários via GitHub Discussions ainda não configurados.",
+    "tags.title": "Tags",
+    "tags.all": "← todas as tags",
+    "tags.for": "Posts marcados com",
+    "category.for": "Posts na categoria",
+    "search.title": "Buscar",
+    "search.building":
+      "O índice de busca é gerado no build de produção. Rode npm run build.",
+    "about.title": "Sobre o Autor",
+    "footer.rss": "RSS",
+    "a11y.theme": "Alternar tema claro/escuro",
+    "a11y.lang": "Trocar idioma",
+    "notfound.title": "Página não encontrada",
+    "notfound.body": "Esta página não existe.",
+    "notfound.home": "Voltar ao início",
+  },
+  en: {
+    // Per-locale overrides of the site identity strings. The default locale uses
+    // SITE.title / SITE.description from the config surface; other locales
+    // translate them here (leave a key out to fall back to the config value).
+    "site.title": "Buildando — by Fernando Teixeira",
+    "site.description":
+      "Software development best practices, object-oriented design, and the craft of writing good code.",
+    "nav.home": "Home",
+    "nav.search": "Search",
+    "nav.about": "About",
+    "home.latest": "Latest posts",
+    "home.empty": "No posts published yet.",
+    "post.updated": "updated on",
+    "post.comments": "Comments",
+    "post.comments.todo": "GitHub Discussions comments are not configured yet.",
+    "tags.title": "Tags",
+    "tags.all": "← all tags",
+    "tags.for": "Posts tagged",
+    "category.for": "Posts in category",
+    "search.title": "Search",
+    "search.building":
+      "The search index is generated in the production build. Run npm run build.",
+    "about.title": "About",
+    "footer.rss": "RSS",
+    "a11y.theme": "Toggle light/dark theme",
+    "a11y.lang": "Switch language",
+    "notfound.title": "Page not found",
+    "notfound.body": "This page does not exist.",
+    "notfound.home": "Back to home",
+  },
+};

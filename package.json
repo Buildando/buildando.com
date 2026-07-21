@@ -1,0 +1,27 @@
+{
+  "name": "buildando-blog",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Static, forkable blog platform (Astro). Content is markdown, no backend, strong SEO, GitHub Discussions via giscus.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.11",
+    "@astrojs/sitemap": "^3.4.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/space-grotesk": "^5.3.0",
+    "astro": "^5.10.0"
+  },
+  "devDependencies": {
+    "pagefind": "^1.3.0"
+  },
+  "allowScripts": {
+    "esbuild@0.27.7": true,
+    "esbuild@0.25.12": true,
+    "sharp@0.34.5": true
+  }
+}

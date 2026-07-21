@@ -1,0 +1,132 @@
+---
+// SEO head: title, description, canonical, Open Graph, Twitter Card, JSON-LD,
+// and hreflang alternates. Emitted for every page automatically
+// (REQ-011, REQ-012, REQ-013, REQ-018, REQ-032).
+import { SITE, ANALYTICS } from "../config/site";
+import { absoluteUrl } from "../lib/seo";
+import { localeMeta, siteTitle, siteDescription } from "../i18n";
+
+interface Props {
+  title: string;
+  description?: string;
+  path: string;
+  lang: string;
+  /** Content language for JSON-LD inLanguage; defaults to the page locale. */
+  contentLang?: string;
+  image?: string;
+  type?: "website" | "article";
+  canonicalURL?: string;
+  publishDate?: Date;
+  updatedDate?: Date;
+  author?: string;
+  keywords?: string[];
+  alternates?: { hreflang: string; href: string }[];
+}
+
+const {
+  title,
+  description: descriptionProp,
+  path,
+  lang,
+  contentLang,
+  image,
+  type = "website",
+  canonicalURL,
+  publishDate,
+  updatedDate,
+  author = SITE.author,
+  keywords = [],
+  alternates = [],
+} = Astro.props;
+
+const description = descriptionProp ?? siteDescription(lang);
+const canonical = canonicalURL ?? absoluteUrl(path);
+const socialImage = image
+  ? image.startsWith("http")
+    ? image
+    : absoluteUrl(image)
+  : absoluteUrl(SITE.defaultOgImage);
+const fullTitle = title === SITE.name ? siteTitle(lang) : `${title} — ${SITE.name}`;
+const ogLocale = localeMeta(lang).ogLocale;
+
+const jsonLd =
+  type === "article"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: title,
+        description,
+        image: socialImage,
+        url: canonical,
+        inLanguage: localeMeta(contentLang ?? lang).htmlLang,
+        datePublished: publishDate?.toISOString(),
+        dateModified: (updatedDate ?? publishDate)?.toISOString(),
+        author: { "@type": "Person", name: author },
+        publisher: { "@type": "Organization", name: SITE.name },
+        mainEntityOfPage: canonical,
+      }
+    : {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: SITE.name,
+        url: SITE.url,
+        inLanguage: localeMeta(lang).htmlLang,
+        description: siteDescription(lang),
+      };
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href={SITE.logo} />
+<meta name="generator" content={Astro.generator} />
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+{keywords.length > 0 && <meta name="keywords" content={keywords.join(", ")} />}
+<link rel="canonical" href={canonical} />
+
+<!-- hreflang alternates (REQ-032) -->
+{alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
+
+<!-- Open Graph (REQ-012) -->
+<meta property="og:type" content={type} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={socialImage} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:locale" content={ogLocale} />
+{type === "article" && publishDate && (
+  <meta property="article:published_time" content={publishDate.toISOString()} />
+)}
+{type === "article" && updatedDate && (
+  <meta property="article:modified_time" content={updatedDate.toISOString()} />
+)}
+
+<!-- Twitter Card (REQ-012) -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={socialImage} />
+
+<!-- RSS autodiscovery per locale (REQ-016) -->
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  title={SITE.name}
+  href={absoluteUrl(`/${lang}/rss.xml`)}
+/>
+
+<!-- Structured data (REQ-013) -->
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+{
+  ANALYTICS.id && (
+    <script
+      is:inline
+      defer
+      data-domain={ANALYTICS.id}
+      src="https://plausible.io/js/script.js"
+    />
+  )
+}

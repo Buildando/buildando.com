@@ -1,0 +1,22 @@
+---
+import PostLayout from "../../../layouts/PostLayout.astro";
+import { getPostRoutes } from "../../../lib/posts";
+
+// Canonical + fallback post routes (REQ-032, REQ-033). Drafts excluded in prod.
+export async function getStaticPaths() {
+  return await getPostRoutes();
+}
+
+const { post, uiLang, langSwitch, alternates, canonicalPath } = Astro.props;
+const { Content } = await post.render();
+---
+
+<PostLayout
+  post={post}
+  uiLang={uiLang}
+  langSwitch={langSwitch}
+  alternates={alternates}
+  canonicalPath={canonicalPath}
+>
+  <Content />
+</PostLayout>
