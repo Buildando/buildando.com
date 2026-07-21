@@ -35,8 +35,6 @@ export const ui: Record<string, Record<string, string>> = {
     "home.empty": "Nenhum post publicado ainda.",
     "post.updated": "atualizado em",
     "post.comments": "Comentários",
-    "post.comments.todo":
-      "Comentários via GitHub Discussions ainda não configurados.",
     "tags.title": "Tags",
     "tags.all": "← todas as tags",
     "tags.for": "Posts marcados com",
@@ -90,7 +88,6 @@ export const ui: Record<string, Record<string, string>> = {
     "home.empty": "No posts published yet.",
     "post.updated": "updated on",
     "post.comments": "Comments",
-    "post.comments.todo": "GitHub Discussions comments are not configured yet.",
     "tags.title": "Tags",
     "tags.all": "← all tags",
     "tags.for": "Posts tagged",

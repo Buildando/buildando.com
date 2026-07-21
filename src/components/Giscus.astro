@@ -1,7 +1,8 @@
 ---
 // GitHub Discussions embed (REQ-022–REQ-024). Configured once from the config
-// surface. Loaded lazily: the giscus script is injected only when the section
-// scrolls into view, so a post page ships no discussion JS until then (REQ-017).
+// surface. When it is not configured (empty repoId/categoryId) the whole section
+// renders nothing — no heading, no script (REQ-017). Loaded lazily: the giscus
+// script is injected only when the section scrolls into view.
 import { GISCUS } from "../config/site";
 import { useTranslations } from "../i18n";
 
@@ -12,13 +13,45 @@ interface Props {
 }
 const { term, lang } = Astro.props;
 const t = useTranslations(lang);
-const configured = GISCUS.repoId && GISCUS.categoryId;
+const configured = Boolean(GISCUS.repoId && GISCUS.categoryId);
+
+// Lazy loader as a raw string (set:html avoids HTML-escaping the JS operators).
+const loader = `(function(){
+  var mount = document.getElementById("giscus-mount");
+  if (!mount || mount.dataset.loaded) return;
+  function load(){
+    if (mount.dataset.loaded) return;
+    mount.dataset.loaded = "true";
+    var d = mount.dataset;
+    var s = document.createElement("script");
+    s.src = "https://giscus.app/client.js";
+    s.async = true;
+    s.crossOrigin = "anonymous";
+    s.setAttribute("data-repo", d.repo);
+    s.setAttribute("data-repo-id", d.repoid);
+    s.setAttribute("data-category", d.category);
+    s.setAttribute("data-category-id", d.categoryid);
+    s.setAttribute("data-mapping", d.mapping);
+    if (d.term) s.setAttribute("data-term", d.term);
+    s.setAttribute("data-reactions-enabled", d.reactions);
+    s.setAttribute("data-emit-metadata", "0");
+    s.setAttribute("data-theme", d.theme);
+    s.setAttribute("data-lang", d.lang);
+    mount.appendChild(s);
+  }
+  var io = new IntersectionObserver(function(entries){
+    for (var i = 0; i < entries.length; i++){
+      if (entries[i].isIntersecting){ load(); io.disconnect(); return; }
+    }
+  });
+  io.observe(mount);
+})();`;
 ---
 
-<section class="discussion" aria-label={t("post.comments")}>
-  <h2>{t("post.comments")}</h2>
-  {
-    configured ? (
+{
+  configured && (
+    <section class="discussion" aria-label={t("post.comments")}>
+      <h2>{t("post.comments")}</h2>
       <div
         id="giscus-mount"
         data-repo={GISCUS.repo}
@@ -31,55 +64,15 @@ const configured = GISCUS.repoId && GISCUS.categoryId;
         data-theme={GISCUS.theme}
         data-lang={lang}
       />
-    ) : (
-      <p class="giscus-todo">
-        {t("post.comments.todo")} <code>src/config/site.ts</code> · giscus.app
-      </p>
-    )
-  }
-</section>
-
-<script>
-  const mount = document.getElementById("giscus-mount");
-  if (mount) {
-    const load = () => {
-      if (mount.dataset.loaded) return;
-      mount.dataset.loaded = "true";
-      const d = mount.dataset;
-      const s = document.createElement("script");
-      s.src = "https://giscus.app/client.js";
-      s.async = true;
-      s.crossOrigin = "anonymous";
-      s.setAttribute("data-repo", d.repo!);
-      s.setAttribute("data-repo-id", d.repoid!);
-      s.setAttribute("data-category", d.category!);
-      s.setAttribute("data-category-id", d.categoryid!);
-      s.setAttribute("data-mapping", d.mapping!);
-      if (d.term) s.setAttribute("data-term", d.term);
-      s.setAttribute("data-reactions-enabled", d.reactions!);
-      s.setAttribute("data-emit-metadata", "0");
-      s.setAttribute("data-theme", d.theme!);
-      s.setAttribute("data-lang", d.lang!);
-      mount.appendChild(s);
-    };
-    const io = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        load();
-        io.disconnect();
-      }
-    });
-    io.observe(mount);
-  }
-</script>
+      <script is:inline set:html={loader} />
+    </section>
+  )
+}
 
 <style>
   .discussion {
     margin-top: 3rem;
     padding-top: 2rem;
     border-top: 1px solid var(--color-border);
-  }
-  .giscus-todo {
-    color: var(--color-muted);
-    font-size: 0.9rem;
   }
 </style>

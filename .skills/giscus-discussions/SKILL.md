@@ -19,8 +19,9 @@ Technique for delegating comments to GitHub Discussions with no backend.
 ## Configure once
 
 Keep `repo`, `repoId`, `category`, `categoryId`, `mapping`, `theme`, `lang` in the
-single config surface — never per post. Guard the embed on `repoId && categoryId`
-so an unconfigured fork degrades to a visible TODO instead of a broken widget.
+single config surface — never per post. Guard the whole section on
+`repoId && categoryId` so an unconfigured fork renders nothing — no heading and no
+script — rather than a broken widget or a placeholder.
 
 ## Deterministic mapping
 

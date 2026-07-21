@@ -46,7 +46,7 @@ describe.skipIf(!existsSync(dist))("build output", () => {
   it("serves an untranslated post under the other locale with translated chrome (REQ-033)", () => {
     const fb = read("en", "posts", "exemplo-so-em-portugues", "index.html");
     expect(fb).toContain('<html lang="en"');
-    expect(fb).toContain(">Comments<"); // chrome in English
+    expect(fb).toContain('aria-label="Main"'); // nav chrome in English (nav.aria)
     expect(fb).toContain('<article lang="pt-BR"'); // body marked Portuguese
     expect(fb).toContain(
       'rel="canonical" href="https://buildando.com/pt/posts/exemplo-so-em-portugues/"',

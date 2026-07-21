@@ -330,6 +330,16 @@ There is no running service to observe. The signals are:
 - **WordPress migration and old-URL redirects are deferred.** Starting fresh means the current posts and their URLs are not carried over. If they later are, redirects from the WordPress permalink structure to the new URLs belong in the `.htaccess` and in a migration spec, to preserve the SEO the domain already has. Deferring this is a deliberate, revisitable choice, not an oversight.
 - **RSS full-content vs summary is undecided.** A summary feed is lighter and drives clicks; a full-content feed serves readers better. This is a small editorial choice to settle at implementation, defaulting to summary plus a link.
 - **On-home faceted filtering (`REQ-035`) — design settled.** Chips for category and tag, a `from`/`to` date range chosen via localized month/year selectors, filter state in the URL query string, AND across facets / OR within, and a per-facet "show more" collapse (12 chips) so many tags do not wall off the posts. Implemented as a progressive-enhancement island over the already-rendered cards: the predicate and URL mapping live in the pure `src/lib/facet-filter.ts` (unit-tested), and the client script toggles card visibility. The controls are hidden and the collapse inert when JS is off, leaving the full static list — so this never fights the per-facet listing pages. The date filter resolves to month granularity (first/last day of the chosen month), which suits a blog; a finer picker or a year/month archive view, if wanted, is a separate addition. The month-name localization comes from `Intl`, which is why native `<input type="date">` was rejected — its widget follows the browser locale, not the page.
+- **To validate: do the facet filter and pagination work together?** They are
+  currently mutually exclusive by design — the home filter (`REQ-035`) renders only
+  when a listing fits one page (`page.lastPage === 1` in
+  `src/pages/[lang]/[...page].astro`), because it filters cards already in the DOM;
+  once `POSTS_PER_PAGE > 0` paginates, the filter is hidden and pagination takes
+  over. The open question is whether they should combine at scale. If yes, it needs
+  the client-side metadata index ("option B"): ship a small `posts.json`, filter
+  across all posts on the client, and paginate the filtered result — then test the
+  combined behavior with `POSTS_PER_PAGE > 0` and enough posts to paginate. Until
+  decided, the mutual exclusion stands and is the documented behavior.
 - **In-layout search (`REQ-036`) — design settled.** A header magnifier opens a modal (native `<dialog>`), also bound to `/` and Ctrl/Cmd+K, reusing the Pagefind index loaded lazily on first open. Without JS the header control is a plain link to `/search`, which still satisfies `REQ-020`. The modal complements the `/search` page rather than replacing it.
 - **`.htaccess` on shared Apache is powerful and fragile.** Caching, compression, and HTTPS rules are easy to get subtly wrong on shared hosting. The shipped `.htaccess` should be minimal and tested against the live host rather than assumed.
 - **Spec language is English while the blog is Portuguese.** The spec follows the existing `.specs` convention (English, `shall`) because it is a fork of that established SDD practice and English widens the forkable template's audience. Reader-facing docs (README) may be bilingual. If a Portuguese spec is preferred, that is a cheap change to make now and expensive later.
@@ -403,7 +413,7 @@ with a fixture, image-optimization assertions, and the architecture rules.
 - `REQ-019`: Done. `src/pages/tags/[tag].astro`, `src/pages/categories/[category].astro`, discovery in `src/lib/posts.ts`.
 - `REQ-020`: Done. `src/components/Search.astro` + Pagefind; `dist/pagefind/` present.
 - `REQ-021`: Done. `build` script runs `pagefind --site dist`.
-- `REQ-022`: Done (code). `src/components/Giscus.astro` in `PostLayout.astro`; renders a visible TODO until `GISCUS` ids are filled. Live embed pending real repo ids.
+- `REQ-022`: Done (code). `src/components/Giscus.astro` in `PostLayout.astro`; when `GISCUS.repoId`/`categoryId` are empty the whole section renders nothing (no heading, no script), so an unconfigured template shows no comments UI at all. Live embed pending real repo ids.
 - `REQ-023`: Done. `GISCUS` in `src/config/site.ts`.
 - `REQ-024`: Done. `data-mapping="pathname"` with a `data-term` override driven by the post's `discussion` frontmatter.
 - `REQ-025`: Done (code). `.github/workflows/deploy.yml`. Live run pending secrets + enabled SSH.
