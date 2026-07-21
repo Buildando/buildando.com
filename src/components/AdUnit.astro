@@ -1,0 +1,38 @@
+---
+// Optional AdSense ad unit (REQ-038). Renders only when AdSense is configured in
+// the config surface. Create the unit in the AdSense dashboard and pass its
+// `slot` id. Drop it where you want an ad, e.g. in PostLayout between the content
+// and the comments. When AdSense is disabled, it renders nothing.
+import { ANALYTICS } from "../config/site";
+
+interface Props {
+  /** Ad unit slot id from the AdSense dashboard. */
+  slot: string;
+  format?: string;
+  responsive?: boolean;
+}
+const { slot, format = "auto", responsive = true } = Astro.props;
+---
+
+{
+  ANALYTICS.adsense && (
+    <div class="ad-unit">
+      <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client={ANALYTICS.adsense}
+        data-ad-slot={slot}
+        data-ad-format={format}
+        data-full-width-responsive={responsive ? "true" : "false"}
+      />
+      <script is:inline set:html="(adsbygoogle = window.adsbygoogle || []).push({});" />
+    </div>
+  )
+}
+
+<style>
+  .ad-unit {
+    margin: 2rem 0;
+    text-align: center;
+  }
+</style>

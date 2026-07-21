@@ -57,6 +57,13 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(has("pagefind", "pagefind.js")).toBe(true);
   });
 
+  it("emits no analytics/ads third-party scripts by default (REQ-038)", () => {
+    const html = read("pt", "index.html");
+    expect(html).not.toContain("googletagmanager.com");
+    expect(html).not.toContain("adsbygoogle");
+    expect(html).not.toContain("plausible.io");
+  });
+
   it("renders the home facet filter, hidden until JS (REQ-035)", () => {
     const html = read("pt", "index.html");
     expect(html).toContain('id="filter-bar" hidden');

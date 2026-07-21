@@ -111,10 +111,19 @@ export const GISCUS = {
   lang: "pt",
 } as const;
 
-/** Optional privacy-friendly analytics. Empty = disabled (no script emitted). */
+/**
+ * Optional analytics and ads (REQ-038). Every field is disabled by default: an
+ * empty value emits no script and makes no third-party request, so the template
+ * ships analytics- and ads-free. Enabling Google Analytics or AdSense brings
+ * cookie and consent obligations that are the blog owner's responsibility.
+ */
 export const ANALYTICS = {
-  /** e.g. a Plausible/Umami domain or id. Empty string disables analytics. */
-  id: "",
+  /** Privacy-friendly analytics domain (Plausible). Empty disables it. */
+  plausible: "",
+  /** Google Analytics 4 Measurement ID, e.g. "G-XXXXXXXXXX". Empty disables it. */
+  googleAnalytics: "",
+  /** Google AdSense publisher id, e.g. "ca-pub-0000000000000000". Empty disables it. */
+  adsense: "",
 } as const;
 
 /**

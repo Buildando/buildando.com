@@ -47,6 +47,11 @@ const socialImage = image
     : absoluteUrl(image)
   : absoluteUrl(SITE.defaultOgImage);
 const fullTitle = title === SITE.name ? siteTitle(lang) : `${title} — ${SITE.name}`;
+
+// Optional analytics/ads (REQ-038). GA4 init is inlined only when configured.
+const gtagInit = ANALYTICS.googleAnalytics
+  ? `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ANALYTICS.googleAnalytics}');`
+  : "";
 const ogLocale = localeMeta(lang).ogLocale;
 
 const jsonLd =
@@ -120,13 +125,37 @@ const jsonLd =
 <!-- Structured data (REQ-013) -->
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
+<!-- Optional analytics & ads (REQ-038): each is opt-in; nothing is emitted when
+     its id is empty, so the default build makes no third-party request. -->
 {
-  ANALYTICS.id && (
+  ANALYTICS.plausible && (
     <script
       is:inline
       defer
-      data-domain={ANALYTICS.id}
+      data-domain={ANALYTICS.plausible}
       src="https://plausible.io/js/script.js"
+    />
+  )
+}
+{
+  ANALYTICS.googleAnalytics && (
+    <>
+      <script
+        is:inline
+        async
+        src={`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS.googleAnalytics}`}
+      />
+      <script is:inline set:html={gtagInit} />
+    </>
+  )
+}
+{
+  ANALYTICS.adsense && (
+    <script
+      is:inline
+      async
+      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ANALYTICS.adsense}`}
+      crossorigin="anonymous"
     />
   )
 }

@@ -105,6 +105,27 @@ See `src/content/config.ts` for the full schema.
 No other file carries identity — if `buildando`, the domain, or the author appear
 outside the config, it's a bug (that's what `REQ-030` guarantees).
 
+## Analytics and ads
+
+All off by default. Enable any of these in `src/config/site.ts` under `ANALYTICS`
+— an empty value emits no script and makes no third-party request:
+
+- **Plausible** (privacy-friendly): set `plausible` to your domain.
+- **Google Analytics 4**: set `googleAnalytics` to your Measurement ID (`G-…`).
+- **Google AdSense**: set `adsense` to your publisher id (`ca-pub-…`). This loads
+  the AdSense script (site verification + Auto ads). For manual placements, drop
+  the `AdUnit` component where you want an ad and pass its slot id:
+
+  ```astro
+  ---
+  import AdUnit from "../components/AdUnit.astro";
+  ---
+  <AdUnit slot="1234567890" />
+  ```
+
+Enabling GA or AdSense sets cookies and carries consent obligations (e.g. GDPR /
+LGPD) that are your responsibility — the template ships no consent banner.
+
 ## Deploying to HostGator
 
 HostGator has **no official CLI**. Deployment is automated by GitHub Actions in
