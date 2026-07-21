@@ -1,0 +1,72 @@
+---
+// Static pagination nav (REQ-037). Renders nothing when there is a single page.
+// Uses Astro's paginate `page` object; no client JS.
+import { useTranslations } from "../i18n";
+import type { Page } from "astro";
+
+interface Props {
+  page: Page;
+  lang: string;
+}
+const { page, lang } = Astro.props;
+const t = useTranslations(lang);
+const status = t("pagination.status")
+  .replace("{c}", String(page.currentPage))
+  .replace("{t}", String(page.lastPage));
+---
+
+{
+  page.lastPage > 1 && (
+    <nav class="pagination" aria-label={status}>
+      {page.url.prev ? (
+        <a class="pg-btn" href={page.url.prev} rel="prev">
+          ← {t("pagination.prev")}
+        </a>
+      ) : (
+        <span class="pg-btn disabled">← {t("pagination.prev")}</span>
+      )}
+      <span class="pg-status">{status}</span>
+      {page.url.next ? (
+        <a class="pg-btn" href={page.url.next} rel="next">
+          {t("pagination.next")} →
+        </a>
+      ) : (
+        <span class="pg-btn disabled">{t("pagination.next")} →</span>
+      )}
+    </nav>
+  )
+}
+
+<style>
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .pg-btn {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--color-text);
+    white-space: nowrap;
+  }
+  a.pg-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .pg-btn.disabled {
+    color: var(--color-muted);
+    opacity: 0.5;
+  }
+  .pg-status {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

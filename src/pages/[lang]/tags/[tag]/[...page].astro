@@ -1,0 +1,40 @@
+---
+import type { GetStaticPaths, Page } from "astro";
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import PostCard from "../../../../components/PostCard.astro";
+import Pagination from "../../../../components/Pagination.astro";
+import { getTags, type Post } from "../../../../lib/posts";
+import { POSTS_PER_PAGE } from "../../../../config/site";
+import { locales, useTranslations, localizedPath } from "../../../../i18n";
+
+// One paginated listing per distinct tag, per locale (REQ-019, REQ-037).
+export const getStaticPaths = (async ({ paginate }) => {
+  const paths = [];
+  for (const lang of locales) {
+    const tags = await getTags(lang);
+    for (const [tag, posts] of tags) {
+      const pageSize =
+        POSTS_PER_PAGE > 0 ? POSTS_PER_PAGE : Math.max(posts.length, 1);
+      paths.push(...paginate(posts, { params: { lang, tag }, pageSize }));
+    }
+  }
+  return paths;
+}) satisfies GetStaticPaths;
+
+const { lang, tag } = Astro.params;
+const page = Astro.props.page as Page<Post>;
+const t = useTranslations(lang);
+const path = page.url.current ?? localizedPath(lang, `/tags/${tag}/`);
+---
+
+<BaseLayout
+  title={`#${tag}`}
+  description={`${t("tags.for")} #${tag}`}
+  path={path}
+  lang={lang}
+>
+  <h1>#{tag}</h1>
+  <p><a href={localizedPath(lang, "/tags/")}>{t("tags.all")}</a></p>
+  {page.data.map((post) => <PostCard post={post} />)}
+  <Pagination page={page} lang={lang} />
+</BaseLayout>

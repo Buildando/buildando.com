@@ -1,9 +1,16 @@
 ---
+import type { GetStaticPaths, Page } from "astro";
 import { getEntry } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PostCard from "../../components/PostCard.astro";
-import { SITE } from "../../config/site";
-import { getPublishedPosts, getCategories, getTags } from "../../lib/posts";
+import Pagination from "../../components/Pagination.astro";
+import { SITE, POSTS_PER_PAGE } from "../../config/site";
+import {
+  getPublishedPosts,
+  getCategories,
+  getTags,
+  type Post,
+} from "../../lib/posts";
 import {
   locales,
   useTranslations,
@@ -13,62 +20,81 @@ import {
   localeMeta,
 } from "../../i18n";
 
-export function getStaticPaths() {
-  return locales.map((lang) => ({ params: { lang } }));
-}
+// Static pagination (REQ-037). Page size 0 => one page with every post (keeps
+// the facet filter). Positive => numbered, crawlable pages.
+export const getStaticPaths = (async ({ paginate }) => {
+  const paths = [];
+  for (const lang of locales) {
+    const posts = await getPublishedPosts(lang);
+    const pageSize = POSTS_PER_PAGE > 0 ? POSTS_PER_PAGE : Math.max(posts.length, 1);
+    paths.push(...paginate(posts, { params: { lang }, pageSize }));
+  }
+  return paths;
+}) satisfies GetStaticPaths;
 
 const { lang } = Astro.params;
+const page = Astro.props.page as Page<Post>;
 const t = useTranslations(lang);
 
-// Free-form home hero from markdown (REQ-034), with a graceful fallback.
-const hero = await getEntry("home", lang);
-const HeroContent = hero ? (await hero.render()).Content : null;
+const isFirst = page.currentPage === 1;
+// The facet filter needs every card in the DOM, so it shows only when the whole
+// listing fits on one page (REQ-035, REQ-037).
+const showFilter = page.lastPage === 1;
 
+// Free-form home hero from markdown (REQ-034), first page only.
+const hero = isFirst ? await getEntry("home", lang) : null;
+const HeroContent = hero ? (await hero.render()).Content : null;
 const description = hero?.data.description ?? siteDescription(lang);
 const title = hero?.data.title ?? SITE.name;
 
-const posts = await getPublishedPosts(lang);
-// Facet values for this locale, discovered from content (REQ-035).
-const categories = [...(await getCategories(lang)).keys()].sort();
-const tags = [...(await getTags(lang)).keys()].sort();
-
-// Localized month names (via Intl) + the years present in the content (REQ-035).
-const monthFmt = new Intl.DateTimeFormat(localeMeta(lang).htmlLang, {
-  month: "long",
-});
-const months = Array.from({ length: 12 }, (_, i) => {
-  const label = monthFmt.format(new Date(2000, i, 1));
-  return {
-    value: String(i + 1).padStart(2, "0"),
-    label: label.charAt(0).toUpperCase() + label.slice(1),
-  };
-});
-const years = [
-  ...new Set(posts.map((p) => p.data.publishDate.getFullYear())),
-].sort((a, b) => b - a);
+// Facet values + localized month/year controls, only when the filter shows.
+let categories: string[] = [];
+let tags: string[] = [];
+let months: { value: string; label: string }[] = [];
+let years: number[] = [];
+if (showFilter) {
+  categories = [...(await getCategories(lang)).keys()].sort();
+  tags = [...(await getTags(lang)).keys()].sort();
+  const monthFmt = new Intl.DateTimeFormat(localeMeta(lang).htmlLang, {
+    month: "long",
+  });
+  months = Array.from({ length: 12 }, (_, i) => {
+    const label = monthFmt.format(new Date(2000, i, 1));
+    return {
+      value: String(i + 1).padStart(2, "0"),
+      label: label.charAt(0).toUpperCase() + label.slice(1),
+    };
+  });
+  years = [
+    ...new Set(page.data.map((p) => p.data.publishDate.getFullYear())),
+  ].sort((a, b) => b - a);
+}
 const hasDates = years.length > 0;
-const hasFacets = categories.length > 0 || tags.length > 0;
+const hasFacets = showFilter && (categories.length > 0 || tags.length > 0);
+const path = page.url.current ?? localizedPath(lang, "/");
 ---
 
 <BaseLayout
   title={title}
   description={description}
-  path={localizedPath(lang, "/")}
+  path={path}
   lang={lang}
-  alternates={hreflangAlternates("/")}
+  alternates={isFirst ? hreflangAlternates("/") : []}
 >
-  <section class="hero">
-    {
-      HeroContent ? (
-        <HeroContent />
-      ) : (
-        <>
-          <h1>{SITE.name}</h1>
-          <p>{description}</p>
-        </>
-      )
-    }
-  </section>
+  {
+    isFirst && (
+      <section class="hero">
+        {HeroContent ? (
+          <HeroContent />
+        ) : (
+          <>
+            <h1>{SITE.name}</h1>
+            <p>{description}</p>
+          </>
+        )}
+      </section>
+    )
+  }
 
   <h2 class="section-title">{t("home.latest")}</h2>
 
@@ -143,10 +169,12 @@ const hasFacets = categories.length > 0 || tags.length > 0;
   }
 
   <div id="post-list">
-    {posts.length === 0 && <p>{t("home.empty")}</p>}
-    {posts.map((post) => <PostCard post={post} />)}
+    {page.data.length === 0 && <p>{t("home.empty")}</p>}
+    {page.data.map((post) => <PostCard post={post} />)}
   </div>
-  <p id="filter-empty" class="filter-empty" hidden>{t("filter.empty")}</p>
+  {showFilter && <p id="filter-empty" class="filter-empty" hidden>{t("filter.empty")}</p>}
+
+  <Pagination page={page} lang={lang} />
 </BaseLayout>
 
 <script>
@@ -199,11 +227,8 @@ const hasFacets = categories.length > 0 || tags.length > 0;
         chip.setAttribute("aria-pressed", active ? "true" : "false");
       });
       if (clearBtn) clearBtn.hidden = isEmpty(criteria);
-      // Keep active-but-collapsed chips visible after any pressed-state change.
       collapseRefreshers.forEach((fn) => fn());
     };
-    // Reflect criteria back into the selects (on load and on clear only, so a
-    // user's in-progress choice is never overwritten).
     const syncDates = () => {
       const set = (el: HTMLSelectElement | null, v: string) => {
         if (el) el.value = v;
@@ -258,8 +283,7 @@ const hasFacets = categories.length > 0 || tags.length > 0;
       apply();
     });
 
-    // "Show more" per facet: collapse to FACET_LIMIT chips, always keeping any
-    // active (pressed) chip visible. No-JS shows every chip (nothing hidden here).
+    // "Show more" per facet: collapse to FACET_LIMIT chips, keeping active chips.
     bar.querySelectorAll<HTMLElement>("[data-facet]").forEach((facet) => {
       const chips = Array.from(facet.querySelectorAll<HTMLElement>(".chip[data-filter]"));
       const moreBtn = facet.querySelector<HTMLElement>("[data-more]");
@@ -325,7 +349,6 @@ const hasFacets = categories.length > 0 || tags.length > 0;
     margin-bottom: 0;
   }
 
-  /* Distinct toolbar panel so the filter reads as a control, not as a post. */
   .filter-bar {
     display: flex;
     flex-wrap: wrap;
@@ -351,7 +374,6 @@ const hasFacets = categories.length > 0 || tags.length > 0;
     letter-spacing: 0.06em;
     margin-right: 0.1rem;
   }
-  /* Post list sits clearly below the toolbar, with its own top divider. */
   #post-list {
     border-top: 1px solid var(--color-border);
     margin-top: 0.75rem;

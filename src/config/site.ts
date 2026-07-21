@@ -73,9 +73,12 @@ export const BRAND = {
 
 /** Social profile links, rendered in the footer. Remove or add freely. */
 export const SOCIAL = [
-  { label: "GitHub", href: "https://github.com/fernando-teixeira" },
-  { label: "Twitter/X", href: "https://twitter.com/" },
-  { label: "YouTube", href: "https://youtube.com/" },
+  { label: "GitHub", href: "https://github.com/Buildando" },
+  { label: "Instagram", href: "https://www.instagram.com/buildando" },
+  { label: "Threads", href: "https://www.threads.net/@buildando" },
+  { label: "X", href: "https://x.com/buildando" },
+  { label: "TikTok", href: "https://www.tiktok.com/@buildando" },
+  { label: "Facebook", href: "https://www.facebook.com/buildando" },
 ] as const;
 
 /**
@@ -123,6 +126,16 @@ export const THEME = {
   default: "dark" as "dark" | "light",
   allowToggle: true,
 } as const;
+
+/**
+ * Posts per listing page — home, tag, and category (REQ-037).
+ * `0` shows every post on one page, which keeps the home facet filter (REQ-035)
+ * available — the right default for small and medium blogs. A positive number
+ * splits listings into pre-rendered, crawlable numbered pages with prev/next
+ * navigation; at that scale faceted browsing moves to the per-facet pages and
+ * search, and the home filter is shown only when a listing fits on one page.
+ */
+export const POSTS_PER_PAGE = 0;
 
 /**
  * Internationalization (REQ-032). Add or remove locales here — the routes, the

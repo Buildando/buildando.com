@@ -22,6 +22,8 @@ blog é seu.
 - **SEO automático** em toda página: `<title>`, description, canonical, Open
   Graph, Twitter Card, JSON-LD, `sitemap.xml`, `robots.txt` e feed RSS.
 - **Facetas** por tag e por categoria, geradas a partir do conteúdo.
+- **Paginação estática** opcional (`POSTS_PER_PAGE`): `0` mostra tudo numa página
+  (com o filtro por chips); um número positivo gera páginas numeradas rastreáveis.
 - **Busca full-text no cliente** ([Pagefind](https://pagefind.app)), sem servidor.
 - **Comentários** via [giscus](https://giscus.app) (GitHub Discussions), carregados
   sob demanda.
