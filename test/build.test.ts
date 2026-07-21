@@ -56,6 +56,23 @@ describe.skipIf(!existsSync(dist))("build output", () => {
   it("builds a static client search index (REQ-020, 021)", () => {
     expect(has("pagefind", "pagefind.js")).toBe(true);
   });
+
+  it("renders the home facet filter, hidden until JS (REQ-035)", () => {
+    const html = read("pt", "index.html");
+    expect(html).toContain('id="filter-bar" hidden');
+    expect(html).toContain('data-filter="category"');
+    expect(html).toContain('id="from-year"'); // localized month/year date filter
+    // Cards carry the metadata the filter reads.
+    expect(html).toMatch(/class="card" data-category="[^"]*" data-tags="[^"]*" data-date="/);
+  });
+
+  it("exposes search from the layout on every page (REQ-036)", () => {
+    for (const page of ["pt/index.html", "en/index.html", "pt/posts/exemplo-so-em-portugues/index.html"]) {
+      const html = readFileSync(join(dist, page), "utf8");
+      expect(html).toContain('class="search-trigger"');
+      expect(html).toContain('id="search-dialog"');
+    }
+  });
 });
 
 // Source-level invariant, independent of dist.

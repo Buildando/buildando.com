@@ -5,6 +5,7 @@
 import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import SearchModal from "../components/SearchModal.astro";
 import { SITE, BRAND, THEME } from "../config/site";
 import { localeMeta } from "../i18n";
 // Self-hosted variable fonts (no external request). Bundled into the build.
@@ -82,5 +83,6 @@ const shikiCss =
       <slot />
     </main>
     <Footer lang={lang} />
+    <SearchModal lang={lang} />
   </body>
 </html>

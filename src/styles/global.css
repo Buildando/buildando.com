@@ -110,3 +110,13 @@ code {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* Pagefind UI theming (used by the /search page and the search modal). */
+:root {
+  --pagefind-ui-primary: var(--color-accent);
+  --pagefind-ui-text: var(--color-text);
+  --pagefind-ui-background: var(--color-surface);
+  --pagefind-ui-border: var(--color-border);
+  --pagefind-ui-tag: var(--color-bg);
+  --pagefind-ui-font: var(--font-body);
+}

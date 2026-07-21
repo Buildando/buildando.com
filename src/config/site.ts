@@ -97,7 +97,7 @@ export const NAV = [
  * Leave `repoId` empty to disable the embed until configured.
  */
 export const GISCUS = {
-  repo: "fernando-teixeira/buildando.com",
+  repo: "Buildando/buildando.com",
   repoId: "",
   category: "Comentários",
   categoryId: "",

@@ -11,9 +11,15 @@ interface Props {
 const { post } = Astro.props;
 const { data } = post;
 const lang = data.lang;
+const isoDay = data.publishDate.toISOString().slice(0, 10);
 ---
 
-<article class="card">
+<article
+  class="card"
+  data-category={data.category ?? ""}
+  data-tags={data.tags.join(",")}
+  data-date={isoDay}
+>
   {
     data.cover && (
       <a href={postPath(post)} class="cover">
