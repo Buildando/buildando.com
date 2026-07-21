@@ -34,9 +34,11 @@ blog é seu.
 
 ```bash
 npm install
-npm run dev      # servidor de desenvolvimento (rascunhos visíveis)
-npm run build    # gera dist/ (astro build + índice de busca) — rascunhos excluídos
-npm run preview  # serve o dist/ gerado
+npm run dev        # servidor de desenvolvimento (rascunhos visíveis)
+npm run build      # gera dist/ (astro build + índice de busca) — rascunhos excluídos
+npm run preview    # serve o dist/ gerado
+npm test           # testes (unitários; asserções de build rodam se dist/ existir)
+npm run test:build # build + asserções sobre o dist/
 ```
 
 Requer Node 22+ (veja `.nvmrc`).

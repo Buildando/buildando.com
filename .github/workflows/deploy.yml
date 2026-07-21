@@ -36,6 +36,7 @@ jobs:
 
       - run: npm ci
       - run: npm run build # astro build + pagefind index
+      - run: npm test # unit tests + build-output assertions (dist/ now exists)
 
       - name: Deploy via rsync over SSH (port 2222)
         uses: burnett01/rsync-deployments@7.0.2

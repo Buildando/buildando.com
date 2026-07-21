@@ -1,6 +1,5 @@
 import { getCollection, type CollectionEntry } from "astro:content";
-import { locales, defaultLocale, localeMeta } from "../i18n";
-import { absoluteUrl } from "./seo";
+import { planPostRoutes } from "./post-routes";
 
 export type Post = CollectionEntry<"posts">;
 
@@ -73,71 +72,25 @@ export async function getPostRoutes(): Promise<
   { params: { lang: string; slug: string }; props: PostRoute }[]
 > {
   const posts = await getPublishedPosts();
-  const index = new Map<string, Post>();
-  for (const p of posts) index.set(`${p.data.lang}:${p.slug}`, p);
+  const byKey = new Map<string, Post>();
+  for (const p of posts) byKey.set(`${p.data.lang}:${p.slug}`, p);
 
-  const routes: { params: { lang: string; slug: string }; props: PostRoute }[] =
-    [];
+  const plans = planPostRoutes(
+    posts.map((p) => ({
+      lang: p.data.lang,
+      slug: p.slug,
+      translations: p.data.translations,
+    })),
+  );
 
-  for (const post of posts) {
-    // Real language versions of this post: itself, plus declared translations
-    // that actually exist as published posts (a stale link is ignored).
-    const real: Record<string, string> = { [post.data.lang]: post.slug };
-    for (const L of locales) {
-      if (L === post.data.lang) continue;
-      const tslug = post.data.translations?.[L];
-      if (tslug && index.has(`${L}:${tslug}`)) real[L] = tslug;
-    }
-
-    // Switcher: every locale gets a URL. Real version if it exists, otherwise a
-    // fallback to this very post (kept as-is, page chrome translated).
-    const langSwitch: Record<string, string> = {};
-    for (const L of locales) {
-      langSwitch[L] = real[L]
-        ? `/${L}/posts/${real[L]}/`
-        : `/${L}/posts/${post.slug}/`;
-    }
-
-    // hreflang: only genuine language versions.
-    const alternates = Object.entries(real).map(([L, slug]) => ({
-      hreflang: localeMeta(L).htmlLang,
-      href: absoluteUrl(`/${L}/posts/${slug}/`),
-    }));
-    const xLang = real[defaultLocale] ? defaultLocale : post.data.lang;
-    alternates.push({
-      hreflang: "x-default",
-      href: absoluteUrl(`/${xLang}/posts/${real[xLang]}/`),
-    });
-
-    for (const L of locales) {
-      if (L === post.data.lang) {
-        routes.push({
-          params: { lang: L, slug: post.slug },
-          props: {
-            post,
-            uiLang: L,
-            langSwitch,
-            alternates,
-            canonicalPath: `/${L}/posts/${post.slug}/`,
-          },
-        });
-      } else if (!real[L]) {
-        // Fallback page: this post's content, locale L chrome. Its canonical
-        // points at the source post so the near-duplicate body is not indexed twice.
-        routes.push({
-          params: { lang: L, slug: post.slug },
-          props: {
-            post,
-            uiLang: L,
-            langSwitch,
-            alternates,
-            canonicalPath: `/${post.data.lang}/posts/${post.slug}/`,
-          },
-        });
-      }
-      // else: a real translation owns `/L/posts/{real[L]}/`; nothing to emit here.
-    }
-  }
-
-  return routes;
+  return plans.map((r) => ({
+    params: r.params,
+    props: {
+      post: byKey.get(r.sourceKey)!,
+      uiLang: r.uiLang,
+      langSwitch: r.langSwitch,
+      alternates: r.alternates,
+      canonicalPath: r.canonicalPath,
+    },
+  }));
 }

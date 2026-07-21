@@ -1,0 +1,81 @@
+import { describe, it, expect } from "vitest";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+
+// Build-output assertions. Skipped unless dist/ exists — run `npm run test:build`
+// (which builds first), or `npm run build` before `npm test`.
+const dist = join(process.cwd(), "dist");
+const src = join(process.cwd(), "src");
+const read = (...p: string[]) => readFileSync(join(dist, ...p), "utf8");
+const has = (...p: string[]) => existsSync(join(dist, ...p));
+
+describe.skipIf(!existsSync(dist))("build output", () => {
+  it("redirects the root to the default locale (REQ-032)", () => {
+    expect(read("index.html")).toContain("/pt/");
+  });
+
+  it("emits per-locale homes, feeds, sitemap, robots (REQ-014–016, 032)", () => {
+    expect(has("pt", "index.html")).toBe(true);
+    expect(has("en", "index.html")).toBe(true);
+    expect(has("pt", "rss.xml")).toBe(true);
+    expect(has("en", "rss.xml")).toBe(true);
+    expect(has("sitemap-index.xml")).toBe(true);
+    expect(read("robots.txt")).toContain("Sitemap:");
+  });
+
+  it("emits full SEO on a post page (REQ-011–013, 018)", () => {
+    const html = read("pt", "posts", "exemplo-bem-vindo-ao-buildando", "index.html");
+    expect(html).toMatch(/<link rel="canonical" href="https:\/\/buildando\.com/);
+    expect(html).toContain('property="og:image" content="https://buildando.com/');
+    expect(html).toContain('name="twitter:card"');
+    expect(html).toContain('"@type":"BlogPosting"');
+  });
+
+  it("renders the home hero from markdown (REQ-034)", () => {
+    // Markdown-rendered headings get slug ids; a hardcoded hero would not.
+    expect(read("pt", "index.html")).toContain('<h1 id="buildando"');
+    expect(read("en", "index.html")).toContain('<h1 id="buildando"');
+  });
+
+  it("localizes the site tagline on the english home (REQ-032)", () => {
+    expect(read("en", "index.html")).toContain(
+      "Software development best practices",
+    );
+  });
+
+  it("serves an untranslated post under the other locale with translated chrome (REQ-033)", () => {
+    const fb = read("en", "posts", "exemplo-so-em-portugues", "index.html");
+    expect(fb).toContain('<html lang="en"');
+    expect(fb).toContain(">Comments<"); // chrome in English
+    expect(fb).toContain('<article lang="pt-BR"'); // body marked Portuguese
+    expect(fb).toContain(
+      'rel="canonical" href="https://buildando.com/pt/posts/exemplo-so-em-portugues/"',
+    );
+  });
+
+  it("builds a static client search index (REQ-020, 021)", () => {
+    expect(has("pagefind", "pagefind.js")).toBe(true);
+  });
+});
+
+// Source-level invariant, independent of dist.
+describe("identity confined to the config surface (REQ-030)", () => {
+  it("the domain appears in src only inside config/site.ts", () => {
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          walk(full);
+        } else if (/\.(astro|ts|js|md)$/.test(entry.name)) {
+          if (full.endsWith(join("config", "site.ts"))) continue;
+          if (readFileSync(full, "utf8").includes("buildando.com")) {
+            offenders.push(full);
+          }
+        }
+      }
+    };
+    walk(src);
+    expect(offenders).toEqual([]);
+  });
+});
