@@ -48,6 +48,26 @@ export function postPath(post: Post): string {
   return `/${post.data.lang}/posts/${post.slug}/`;
 }
 
+/**
+ * Posts grouped by publication year then month for the archive (REQ-041).
+ * Returns `year -> (month -> posts)`, using UTC parts so it matches the ISO date
+ * used elsewhere. Callers sort the keys as they render.
+ */
+export async function getArchive(
+  lang: string,
+): Promise<Map<number, Map<number, Post[]>>> {
+  const posts = await getPublishedPosts(lang); // newest first
+  const years = new Map<number, Map<number, Post[]>>();
+  for (const post of posts) {
+    const d = post.data.publishDate;
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth() + 1; // 1..12
+    const months = years.get(year) ?? years.set(year, new Map()).get(year)!;
+    (months.get(month) ?? months.set(month, []).get(month)!).push(post);
+  }
+  return years;
+}
+
 export interface PostRoute {
   post: Post;
   /** Page/UI locale — may differ from the post's content language on a fallback page. */

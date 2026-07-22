@@ -93,6 +93,15 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(html).toMatch(/class="card" data-category="[^"]*" data-tags="[^"]*" data-date="/);
   });
 
+  it("builds the date archive index and month pages (REQ-041)", () => {
+    expect(has("pt", "archive", "index.html")).toBe(true);
+    expect(has("pt", "archive", "2026", "07", "index.html")).toBe(true);
+    expect(read("pt", "archive", "index.html")).toContain("/pt/archive/2026/07/");
+    expect(read("pt", "archive", "2026", "07", "index.html")).toContain(
+      "Julho de 2026",
+    );
+  });
+
   it("exposes search from the layout on every page (REQ-036)", () => {
     for (const page of ["pt/index.html", "en/index.html", "pt/posts/exemplo-so-em-portugues/index.html"]) {
       const html = readFileSync(join(dist, page), "utf8");
