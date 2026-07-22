@@ -71,14 +71,18 @@ export const BRAND = {
   contentWidth: "46rem",
 } as const;
 
-/** Social profile links, rendered in the footer. Remove or add freely. */
+/**
+ * Social profile links, rendered as icons in the footer. `icon` is a simple-icons
+ * slug (see src/components/Icon.astro for the supported set); an unknown slug
+ * falls back to nothing, so add the glyph there if you use a new network.
+ */
 export const SOCIAL = [
-  { label: "GitHub", href: "https://github.com/Buildando" },
-  { label: "Instagram", href: "https://www.instagram.com/buildando" },
-  { label: "Threads", href: "https://www.threads.net/@buildando" },
-  { label: "X", href: "https://x.com/buildando" },
-  { label: "TikTok", href: "https://www.tiktok.com/@buildando" },
-  { label: "Facebook", href: "https://www.facebook.com/buildando" },
+  { label: "GitHub", href: "https://github.com/Buildando", icon: "github" },
+  { label: "Instagram", href: "https://www.instagram.com/buildando", icon: "instagram" },
+  { label: "Threads", href: "https://www.threads.net/@buildando", icon: "threads" },
+  { label: "X", href: "https://x.com/buildando", icon: "x" },
+  { label: "TikTok", href: "https://www.tiktok.com/@buildando", icon: "tiktok" },
+  { label: "Facebook", href: "https://www.facebook.com/buildando", icon: "facebook" },
 ] as const;
 
 /**

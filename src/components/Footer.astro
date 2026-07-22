@@ -1,6 +1,7 @@
 ---
 import { SITE, SOCIAL } from "../config/site";
 import { useTranslations, localizedPath } from "../i18n";
+import Icon from "./Icon.astro";
 
 interface Props {
   lang: string;
@@ -13,13 +14,31 @@ const year = new Date().getFullYear();
 <footer class="site-footer">
   <div class="wrap">
     <p>© {year} {SITE.author}</p>
-    <ul>
+    <ul class="social">
       {SOCIAL.map((s) => (
         <li>
-          <a href={s.href} rel="me noopener" target="_blank">{s.label}</a>
+          <a
+            class="icon-chip"
+            href={s.href}
+            rel="me noopener"
+            target="_blank"
+            aria-label={s.label}
+            title={s.label}
+          >
+            <Icon name={s.icon} />
+          </a>
         </li>
       ))}
-      <li><a href={localizedPath(lang, "/rss.xml")}>{t("footer.rss")}</a></li>
+      <li>
+        <a
+          class="icon-chip"
+          href={localizedPath(lang, "/rss.xml")}
+          aria-label={t("footer.rss")}
+          title={t("footer.rss")}
+        >
+          <Icon name="rss" />
+        </a>
+      </li>
     </ul>
   </div>
 </footer>
@@ -40,17 +59,12 @@ const year = new Date().getFullYear();
     justify-content: space-between;
     gap: 0.75rem;
   }
-  ul {
+  .social {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     list-style: none;
     margin: 0;
     padding: 0;
-  }
-  a {
-    color: var(--color-muted);
-  }
-  a:hover {
-    color: var(--color-text);
   }
 </style>
