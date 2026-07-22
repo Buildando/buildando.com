@@ -129,8 +129,11 @@ All off by default. Enable any of these in `src/config/site.ts` under `ANALYTICS
   <AdUnit slot="1234567890" />
   ```
 
-Enabling GA or AdSense sets cookies and carries consent obligations (e.g. GDPR /
-LGPD) that are your responsibility — the template ships no consent banner.
+Enabling GA or AdSense sets cookies, so a **consent banner** gates them: they load
+only after the reader accepts (nothing is set before consent), and the choice is
+remembered. Plausible is cookieless and loads regardless. Configure it under
+`CONSENT` in `src/config/site.ts` (`required: false` loads GA/AdSense immediately
+with no banner, for when you have another legal basis; `privacyUrl` adds a link).
 
 ## Newsletter
 

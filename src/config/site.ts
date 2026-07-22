@@ -157,6 +157,19 @@ export const ANALYTICS = {
 } as const;
 
 /**
+ * Cookie consent (REQ-042). When `required` is true and Google Analytics or
+ * AdSense is configured, those cookie-setting scripts do NOT load until the
+ * reader accepts a consent banner — nothing is set before consent. Plausible is
+ * cookieless and loads regardless. Set `required: false` only where you have
+ * another legal basis (then GA/AdSense load immediately, no banner).
+ */
+export const CONSENT = {
+  required: true,
+  /** Optional privacy-policy URL linked in the banner. Empty hides the link. */
+  privacyUrl: "",
+} as const;
+
+/**
  * Color theme (REQ-031). `default` is the theme a first-time visitor sees; the
  * reader can switch with the header toggle and the choice is remembered. Set
  * `allowToggle: false` to lock the site to `default` and hide the toggle.

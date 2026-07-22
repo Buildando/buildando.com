@@ -66,11 +66,12 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(has("pagefind", "pagefind.js")).toBe(true);
   });
 
-  it("emits no analytics/ads third-party scripts by default (REQ-038)", () => {
+  it("emits no analytics/ads/consent by default (REQ-038, REQ-042)", () => {
     const html = read("pt", "index.html");
     expect(html).not.toContain("googletagmanager.com");
     expect(html).not.toContain("adsbygoogle");
     expect(html).not.toContain("plausible.io");
+    expect(html).not.toContain('id="consent-banner"');
   });
 
   it("renders no newsletter form by default (REQ-039)", () => {

@@ -1,0 +1,139 @@
+---
+// Cookie consent (REQ-042). When Google Analytics or AdSense is configured and
+// consent is required, those cookie-setting scripts are NOT emitted statically —
+// they are injected by this script only after the reader accepts, so nothing is
+// set before consent. Plausible is handled in BaseHead (cookieless, no consent).
+// Renders nothing when neither GA nor AdSense is configured.
+import { ANALYTICS, CONSENT } from "../config/site";
+import { useTranslations } from "../i18n";
+
+interface Props {
+  lang: string;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const ga = ANALYTICS.googleAnalytics;
+const ads = ANALYTICS.adsense;
+const gated = Boolean(ga || ads);
+
+const consentScript = `(function(){
+  var GA=${JSON.stringify(ga || "")};
+  var ADS=${JSON.stringify(ads || "")};
+  var REQUIRED=${CONSENT.required ? "true" : "false"};
+  var KEY="consent";
+  function loadGA(){
+    if(!GA) return;
+    var s=document.createElement("script"); s.async=true;
+    s.src="https://www.googletagmanager.com/gtag/js?id="+GA;
+    document.head.appendChild(s);
+    window.dataLayer=window.dataLayer||[];
+    function gtag(){dataLayer.push(arguments);}
+    gtag("js", new Date()); gtag("config", GA);
+  }
+  function loadAds(){
+    if(!ADS) return;
+    var s=document.createElement("script"); s.async=true; s.crossOrigin="anonymous";
+    s.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+ADS;
+    document.head.appendChild(s);
+  }
+  function loadAll(){ loadGA(); loadAds(); }
+  var decision=null;
+  try { decision=localStorage.getItem(KEY); } catch(e){}
+  if(!REQUIRED){ loadAll(); return; }
+  if(decision==="granted"){ loadAll(); return; }
+  if(decision==="denied"){ return; }
+  var banner=document.getElementById("consent-banner");
+  if(!banner) return;
+  banner.hidden=false;
+  function decide(v){
+    try { localStorage.setItem(KEY, v); } catch(e){}
+    banner.hidden=true;
+    if(v==="granted") loadAll();
+  }
+  var a=document.getElementById("consent-accept");
+  var r=document.getElementById("consent-reject");
+  if(a) a.addEventListener("click", function(){ decide("granted"); });
+  if(r) r.addEventListener("click", function(){ decide("denied"); });
+})();`;
+---
+
+{
+  gated && (
+    <>
+      {CONSENT.required && (
+        <div id="consent-banner" class="consent" role="dialog" aria-label={t("consent.title")} hidden>
+          <p class="consent-text">
+            {t("consent.text")}
+            {CONSENT.privacyUrl && (
+              <>
+                {" "}
+                <a href={CONSENT.privacyUrl}>{t("consent.privacy")}</a>
+              </>
+            )}
+          </p>
+          <div class="consent-actions">
+            <button id="consent-reject" type="button" class="consent-btn">
+              {t("consent.reject")}
+            </button>
+            <button id="consent-accept" type="button" class="consent-btn consent-accept">
+              {t("consent.accept")}
+            </button>
+          </div>
+        </div>
+      )}
+      <script is:inline set:html={consentScript} />
+    </>
+  )
+}
+
+<style>
+  .consent {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 50;
+    max-width: 44rem;
+    margin-inline: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+  .consent-text {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-text);
+    flex: 1 1 16rem;
+  }
+  .consent-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .consent-btn {
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+  .consent-btn:hover {
+    border-color: var(--color-accent);
+  }
+  .consent-accept {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-accent-contrast);
+    font-weight: 600;
+  }
+</style>
