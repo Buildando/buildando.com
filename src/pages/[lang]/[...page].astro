@@ -10,6 +10,7 @@ import {
   getPublishedPosts,
   getCategories,
   getTags,
+  getArchive,
   type Post,
 } from "../../lib/posts";
 import {
@@ -48,30 +49,35 @@ const HeroContent = hero ? (await hero.render()).Content : null;
 const description = hero?.data.description ?? siteDescription(lang);
 const title = hero?.data.title ?? SITE.name;
 
-// Facet values + localized month/year controls, only when the filter shows.
+// Facet values, only when the filter shows: category and tag chips, and month
+// chips (YYYY-MM) with localized labels, newest first (REQ-035).
 let categories: string[] = [];
 let tags: string[] = [];
-let months: { value: string; label: string }[] = [];
-let years: number[] = [];
+let monthFacets: { value: string; label: string }[] = [];
 if (showFilter) {
   categories = [...(await getCategories(lang)).keys()].sort();
   tags = [...(await getTags(lang)).keys()].sort();
-  const monthFmt = new Intl.DateTimeFormat(localeMeta(lang).htmlLang, {
-    month: "long",
+  const shortFmt = new Intl.DateTimeFormat(localeMeta(lang).htmlLang, {
+    month: "short",
+    timeZone: "UTC",
   });
-  months = Array.from({ length: 12 }, (_, i) => {
-    const label = monthFmt.format(new Date(2000, i, 1));
-    return {
-      value: String(i + 1).padStart(2, "0"),
-      label: label.charAt(0).toUpperCase() + label.slice(1),
-    };
-  });
-  years = [
-    ...new Set(page.data.map((p) => p.data.publishDate.getFullYear())),
-  ].sort((a, b) => b - a);
+  const monthLabel = (year: number, m: number) => {
+    const s = shortFmt.format(new Date(Date.UTC(year, m - 1, 1))).replace(".", "");
+    return `${s.charAt(0).toUpperCase() + s.slice(1)} ${year}`;
+  };
+  for (const [year, mmap] of await getArchive(lang)) {
+    for (const m of mmap.keys()) {
+      monthFacets.push({
+        value: `${year}-${String(m).padStart(2, "0")}`,
+        label: monthLabel(year, m),
+      });
+    }
+  }
+  monthFacets.sort((a, b) => (a.value < b.value ? 1 : -1)); // newest first
 }
-const hasDates = years.length > 0;
-const hasFacets = showFilter && (categories.length > 0 || tags.length > 0);
+const hasFacets =
+  showFilter &&
+  (categories.length > 0 || tags.length > 0 || monthFacets.length > 0);
 const path = page.url.current ?? localizedPath(lang, "/");
 ---
 
@@ -113,15 +119,7 @@ const path = page.url.current ?? localizedPath(lang, "/");
                 {c}
               </button>
             ))}
-            <button
-              class="chip more"
-              type="button"
-              data-more
-              data-more-label={t("filter.more")}
-              data-less-label={t("filter.less")}
-              aria-expanded="false"
-              hidden
-            />
+            <button class="chip more" type="button" data-more data-more-label={t("filter.more")} data-less-label={t("filter.less")} aria-expanded="false" hidden />
           </div>
         )}
         {tags.length > 0 && (
@@ -132,38 +130,18 @@ const path = page.url.current ?? localizedPath(lang, "/");
                 #{tg}
               </button>
             ))}
-            <button
-              class="chip more"
-              type="button"
-              data-more
-              data-more-label={t("filter.more")}
-              data-less-label={t("filter.less")}
-              aria-expanded="false"
-              hidden
-            />
+            <button class="chip more" type="button" data-more data-more-label={t("filter.more")} data-less-label={t("filter.less")} aria-expanded="false" hidden />
           </div>
         )}
-        {hasDates && (
-          <div class="facet dates">
-            <span class="facet-label">{t("filter.from")}</span>
-            <select id="from-month" class="date-select" aria-label={`${t("filter.from")} — ${t("filter.month")}`}>
-              <option value="">{t("filter.month")}</option>
-              {months.map((m) => <option value={m.value}>{m.label}</option>)}
-            </select>
-            <select id="from-year" class="date-select" aria-label={`${t("filter.from")} — ${t("filter.year")}`}>
-              <option value="">{t("filter.year")}</option>
-              {years.map((y) => <option value={String(y)}>{y}</option>)}
-            </select>
-
-            <span class="facet-label">{t("filter.to")}</span>
-            <select id="to-month" class="date-select" aria-label={`${t("filter.to")} — ${t("filter.month")}`}>
-              <option value="">{t("filter.month")}</option>
-              {months.map((m) => <option value={m.value}>{m.label}</option>)}
-            </select>
-            <select id="to-year" class="date-select" aria-label={`${t("filter.to")} — ${t("filter.year")}`}>
-              <option value="">{t("filter.year")}</option>
-              {years.map((y) => <option value={String(y)}>{y}</option>)}
-            </select>
+        {monthFacets.length > 0 && (
+          <div class="facet" data-facet>
+            <span class="facet-label">{t("filter.date")}</span>
+            {monthFacets.map((mf) => (
+              <button class="chip" type="button" data-filter="month" data-value={mf.value} aria-pressed="false">
+                {mf.label}
+              </button>
+            ))}
+            <button class="chip more" type="button" data-more data-more-label={t("filter.more")} data-less-label={t("filter.less")} aria-expanded="false" hidden />
           </div>
         )}
         <button class="chip clear" type="button" id="filter-clear" hidden>{t("filter.clear")}</button>
@@ -197,10 +175,6 @@ const path = page.url.current ?? localizedPath(lang, "/");
     const cards = Array.from(list.querySelectorAll<HTMLElement>(".card"));
     const empty = document.getElementById("filter-empty");
     const clearBtn = document.getElementById("filter-clear");
-    const fromMonth = document.getElementById("from-month") as HTMLSelectElement | null;
-    const fromYear = document.getElementById("from-year") as HTMLSelectElement | null;
-    const toMonth = document.getElementById("to-month") as HTMLSelectElement | null;
-    const toYear = document.getElementById("to-year") as HTMLSelectElement | null;
 
     let criteria: FilterCriteria = readFilter(new URLSearchParams(location.search));
 
@@ -208,38 +182,23 @@ const path = page.url.current ?? localizedPath(lang, "/");
     const FACET_LIMIT = 12;
     const collapseRefreshers: Array<() => void> = [];
 
-    // Month/year selects -> ISO date bounds. `from` = first day; `to` = last day.
-    const boundFrom = () =>
-      fromYear?.value
-        ? `${fromYear.value}-${fromMonth?.value || "01"}-01`
-        : undefined;
-    const boundTo = () => {
-      if (!toYear?.value) return undefined;
-      const m = toMonth?.value || "12";
-      const last = new Date(Number(toYear.value), Number(m), 0).getDate();
-      return `${toYear.value}-${m}-${String(last).padStart(2, "0")}`;
-    };
+    const setOf = (type: string): string[] =>
+      type === "category"
+        ? criteria.categories
+        : type === "tag"
+          ? criteria.tags
+          : criteria.months;
 
     const syncChips = () => {
       bar.querySelectorAll<HTMLElement>(".chip[data-filter]").forEach((chip) => {
         const val = chip.dataset.value ?? "";
-        const active =
-          chip.dataset.filter === "category"
-            ? criteria.categories.includes(val)
-            : criteria.tags.includes(val);
-        chip.setAttribute("aria-pressed", active ? "true" : "false");
+        chip.setAttribute(
+          "aria-pressed",
+          setOf(chip.dataset.filter ?? "").includes(val) ? "true" : "false",
+        );
       });
       if (clearBtn) clearBtn.hidden = isEmpty(criteria);
       collapseRefreshers.forEach((fn) => fn());
-    };
-    const syncDates = () => {
-      const set = (el: HTMLSelectElement | null, v: string) => {
-        if (el) el.value = v;
-      };
-      set(fromYear, criteria.from ? criteria.from.slice(0, 4) : "");
-      set(fromMonth, criteria.from ? criteria.from.slice(5, 7) : "");
-      set(toYear, criteria.to ? criteria.to.slice(0, 4) : "");
-      set(toMonth, criteria.to ? criteria.to.slice(5, 7) : "");
     };
 
     const apply = () => {
@@ -262,27 +221,17 @@ const path = page.url.current ?? localizedPath(lang, "/");
       const chip = (e.target as HTMLElement).closest<HTMLElement>(".chip[data-filter]");
       if (!chip) return;
       const val = chip.dataset.value ?? "";
-      if (chip.dataset.filter === "category")
-        criteria.categories = toggle(criteria.categories, val);
-      else criteria.tags = toggle(criteria.tags, val);
+      const type = chip.dataset.filter;
+      if (type === "category") criteria.categories = toggle(criteria.categories, val);
+      else if (type === "tag") criteria.tags = toggle(criteria.tags, val);
+      else if (type === "month") criteria.months = toggle(criteria.months, val);
       syncChips();
       apply();
     });
 
-    const onDate = () => {
-      criteria.from = boundFrom();
-      criteria.to = boundTo();
-      syncChips();
-      apply();
-    };
-    [fromMonth, fromYear, toMonth, toYear].forEach((el) =>
-      el?.addEventListener("change", onDate),
-    );
-
     clearBtn?.addEventListener("click", () => {
-      criteria = { categories: [], tags: [] };
+      criteria = { categories: [], tags: [], months: [] };
       syncChips();
-      syncDates();
       apply();
     });
 
@@ -316,7 +265,6 @@ const path = page.url.current ?? localizedPath(lang, "/");
     });
 
     syncChips();
-    syncDates();
     apply();
   }
 </script>
@@ -399,16 +347,6 @@ const path = page.url.current ?? localizedPath(lang, "/");
     background: var(--color-accent);
     border-color: var(--color-accent);
     color: var(--color-accent-contrast);
-  }
-  .date-select {
-    font: inherit;
-    font-size: 0.85rem;
-    padding: 0.25rem 0.4rem;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    background: var(--color-bg);
-    color: var(--color-text);
-    color-scheme: light dark;
   }
   .chip.clear {
     color: var(--color-muted);

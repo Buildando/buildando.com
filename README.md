@@ -41,9 +41,8 @@ and giscus. Each step is detailed below.
   and `rel="prev/next"` on paginated pages.
 - **Auto social cards**: a post without a `cover` gets a branded 1200×630 Open
   Graph image generated at build (`/og/<slug>.png`) — posts with a cover use it.
-- **Facets** by tag and category, generated from the content.
-- **Date archive**: a year/month index and per-month pages, with localized month
-  names, linked from the nav.
+- **Facets** by tag, category, and month, generated from the content — a
+  client-side chip filter on the home.
 - **Optional static pagination** (`POSTS_PER_PAGE`): `0` shows every post on one
   page (with the chip filter); a positive number generates crawlable numbered pages.
 - **Client-side full-text search** ([Pagefind](https://pagefind.app)), no server.

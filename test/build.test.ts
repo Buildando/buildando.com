@@ -88,18 +88,9 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     const html = read("pt", "index.html");
     expect(html).toContain('id="filter-bar" hidden');
     expect(html).toContain('data-filter="category"');
-    expect(html).toContain('id="from-year"'); // localized month/year date filter
+    expect(html).toContain('data-filter="month"'); // month chips (date facet)
     // Cards carry the metadata the filter reads.
     expect(html).toMatch(/class="card" data-category="[^"]*" data-tags="[^"]*" data-date="/);
-  });
-
-  it("builds the date archive index and month pages (REQ-041)", () => {
-    expect(has("pt", "archive", "index.html")).toBe(true);
-    expect(has("pt", "archive", "2026", "07", "index.html")).toBe(true);
-    expect(read("pt", "archive", "index.html")).toContain("/pt/archive/2026/07/");
-    expect(read("pt", "archive", "2026", "07", "index.html")).toContain(
-      "Julho de 2026",
-    );
   });
 
   it("exposes search from the layout on every page (REQ-036)", () => {
