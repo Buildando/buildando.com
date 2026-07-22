@@ -32,6 +32,14 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(html).toContain('"@type":"BreadcrumbList"'); // REQ-013
   });
 
+  it("generates a dynamic OG card for a cover-less post (REQ-012)", () => {
+    const html = read("pt", "posts", "exemplo-so-em-portugues", "index.html");
+    expect(html).toContain(
+      'property="og:image" content="https://buildando.com/og/exemplo-so-em-portugues.png"',
+    );
+    expect(has("og", "exemplo-so-em-portugues.png")).toBe(true);
+  });
+
   it("renders the home hero from markdown (REQ-034)", () => {
     // Markdown-rendered headings get slug ids; a hardcoded hero would not.
     expect(read("pt", "index.html")).toContain('<h1 id="buildando"');

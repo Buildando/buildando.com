@@ -37,7 +37,10 @@ and giscus. Each step is detailed below.
 - **Frontmatter validated at build.** A missing required field fails the build,
   naming the post and the field.
 - **Automatic SEO** on every page: `<title>`, description, canonical, Open Graph,
-  Twitter Card, JSON-LD, `sitemap.xml`, `robots.txt`, and an RSS feed.
+  Twitter Card, JSON-LD (incl. `BreadcrumbList`), `sitemap.xml`, `robots.txt`, RSS,
+  and `rel="prev/next"` on paginated pages.
+- **Auto social cards**: a post without a `cover` gets a branded 1200×630 Open
+  Graph image generated at build (`/og/<slug>.png`) — posts with a cover use it.
 - **Facets** by tag and category, generated from the content.
 - **Optional static pagination** (`POSTS_PER_PAGE`): `0` shows every post on one
   page (with the chip filter); a positive number generates crawlable numbered pages.

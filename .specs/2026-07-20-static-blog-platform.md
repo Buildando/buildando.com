@@ -340,6 +340,14 @@ There is no running service to observe. The signals are:
   across all posts on the client, and paginate the filtered result — then test the
   combined behavior with `POSTS_PER_PAGE > 0` and enough posts to paginate. Until
   decided, the mutual exclusion stands and is the documented behavior.
+- **Social share buttons (planned, not built).** On-page controls to share a post
+  to X, WhatsApp, LinkedIn, Telegram, Facebook, and a "copy link" — distinct from
+  the OG image (`REQ-012`), which is the preview shown *when* a link is shared.
+  Implement as static share-intent URLs (`https://wa.me/?text=…`,
+  `https://x.com/intent/tweet?…`, etc.) so most need no JavaScript; "copy link" and
+  the native Web Share API are progressive enhancement. Config-driven which networks
+  appear, placed at the end of the post. To decide: which networks by default and
+  where exactly to place the row.
 - **In-layout search (`REQ-036`) — design settled.** A header magnifier opens a modal (native `<dialog>`), also bound to `/` and Ctrl/Cmd+K, reusing the Pagefind index loaded lazily on first open. Without JS the header control is a plain link to `/search`, which still satisfies `REQ-020`. The modal complements the `/search` page rather than replacing it.
 - **`.htaccess` on shared Apache is powerful and fragile.** Caching, compression, and HTTPS rules are easy to get subtly wrong on shared hosting. The shipped `.htaccess` should be minimal and tested against the live host rather than assumed.
 - **Spec language is English while the blog is Portuguese.** The spec follows the existing `.specs` convention (English, `shall`) because it is a fork of that established SDD practice and English widens the forkable template's audience. Reader-facing docs (README) may be bilingual. If a Portuguese spec is preferred, that is a cheap change to make now and expensive later.
@@ -403,7 +411,7 @@ with a fixture, image-optimization assertions, and the architecture rules.
 - `REQ-009`: Done. `src/config/site.ts` (`SITE`, `BRAND`, `SOCIAL`, `NAV`, `GISCUS`, `ANALYTICS`); tokens injected by `BaseLayout.astro`.
 - `REQ-010`: Done. `dist/` is fully static.
 - `REQ-011`: Done. `src/components/BaseHead.astro`; verified in `dist` (title, description, canonical).
-- `REQ-012`: Done. `BaseHead.astro` + image resolution in `PostLayout.astro`; verified `og:image` is absolute under the domain.
+- `REQ-012`: Done. `BaseHead.astro` + image resolution in `PostLayout.astro`. A post uses its `ogImage`/`cover` when present; otherwise a branded 1200×630 social card is generated at build for `/og/<slug>.png` by `src/pages/og/[...route].ts` (astro-og-canvas, no backend), pulling colors from `BRAND`. Verified `og:image` is absolute under the domain, the card renders the title + `Site · Category` with correct accented glyphs, and cover-bearing posts still use the cover.
 - `REQ-013`: Done. JSON-LD `BlogPosting`/`WebSite` in `BaseHead.astro`, plus `BreadcrumbList` when a trail is passed — posts emit Home › [Category] › Post (built in `PostLayout.astro`), and tag/category pages emit Home › Tags › #tag and Home › Category. Verified in `dist`.
 - `REQ-014`: Done. `@astrojs/sitemap`; `dist/sitemap-index.xml`.
 - `REQ-015`: Done. `src/pages/robots.txt.ts`; `dist/robots.txt` references the sitemap.

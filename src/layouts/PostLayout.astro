@@ -22,9 +22,14 @@ const contentLang = data.lang;
 const isFallback = uiLang !== contentLang;
 const t = useTranslations(uiLang);
 
-// Resolve the social image (REQ-012).
+// Resolve the social image (REQ-012): explicit ogImage, else the cover, else a
+// dynamically generated branded card at /og/<slug>.png (built by src/pages/og).
 const ogSrc = data.ogImage ?? data.cover;
-const image = typeof ogSrc === "string" ? ogSrc : ogSrc?.src;
+const image = ogSrc
+  ? typeof ogSrc === "string"
+    ? ogSrc
+    : ogSrc.src
+  : `/og/${post.slug}.png`;
 
 const path = `/${uiLang}/posts/${post.slug}/`;
 const canonicalURL = data.canonicalURL ?? absoluteUrl(canonicalPath);
