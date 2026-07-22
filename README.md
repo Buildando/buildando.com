@@ -2,11 +2,11 @@
 
 A fast, **forkable** static blog built with [Astro](https://astro.build). Content
 in markdown, **no backend**, strong SEO by construction, client-side search, and
-comments via **GitHub Discussions**. Deploys to any static host — here, HostGator.
+comments via **GitHub Discussions**. Deploys to any static host via GitHub Actions.
 
-This repository is both the [buildando.com](https://buildando.com) blog and a
-_template_: fork it, edit **one** configuration file, swap the logo, and the blog
-is yours.
+This repository is the _template_ itself — the live demo at
+[template.buildando.com](https://template.buildando.com). Fork it, edit **one**
+configuration file, swap the logo, and the blog is yours.
 
 ## Using this template
 
@@ -53,7 +53,7 @@ and giscus. Each step is detailed below.
 - **Light/dark theme** with a header toggle, remembered, no flash on load.
 - **Internationalization (i18n)**: per-locale routes (`/pt/`, `/en/`), translated
   interface, a language switcher, `hreflang`, and a per-locale feed.
-- **Automatic deploy** to HostGator via GitHub Actions (rsync/SSH).
+- **Automatic deploy** to any static host via GitHub Actions (rsync/SSH or FTP).
 
 ## Running locally
 
@@ -194,25 +194,27 @@ Contributions welcome — see [`src/integrations/README.md`](src/integrations/RE
 for the guide, which also lists the build-time seams (search index, RSS, sitemap,
 OG images, deploy).
 
-## Deploying to HostGator
+## Deploying
 
-HostGator has **no official CLI**. Deployment is automated by GitHub Actions in
-`.github/workflows/deploy.yml`.
+The build output in `dist/` is plain static files — host them anywhere. A GitHub
+Actions workflow (`.github/workflows/deploy.yml`) builds and publishes on every
+push to `main`. It targets **cPanel-style shared hosting** over rsync/SSH by
+default, but the transport is easy to swap for any host.
 
-### Primary path: rsync over SSH (port 2222)
+### Primary path: rsync over SSH
 
-1. Ask HostGator support to **enable SSH** (it's on port `2222`, off by default on
-   shared plans).
+1. **Enable SSH** on your host (on cPanel shared plans it's often off by default
+   and on port `2222`, not `22` — check with your provider).
 2. Generate a key pair and put the public half in `~/.ssh/authorized_keys` on the
    server.
 3. Configure the repository _secrets_ (Settings → Secrets → Actions):
-   `HOSTGATOR_SSH_HOST`, `HOSTGATOR_SSH_USER`, `HOSTGATOR_SSH_KEY`,
-   `HOSTGATOR_TARGET_DIR` (e.g. `/home/USER/public_html`).
+   `DEPLOY_SSH_HOST`, `DEPLOY_SSH_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_SSH_PORT`
+   (e.g. `2222`), `DEPLOY_TARGET_DIR` (e.g. `/home/USER/public_html`).
 4. `git push` to the `main` branch triggers build + deploy.
 
 ### Fallback: FTP
 
-If the plan won't enable SSH, swap the deploy step for an FTP action (e.g.
+If the host won't enable SSH, swap the deploy step for an FTP action (e.g.
 `SamKirkland/FTP-Deploy-Action`) using secrets `FTP_SERVER`, `FTP_USERNAME`,
 `FTP_PASSWORD` and `server-dir: public_html/`. The build is the same; only the
 transport changes.

@@ -22,7 +22,7 @@ export const SITE = {
   description:
     "Boas práticas de desenvolvimento de software, orientação a objetos e o ofício de escrever bom código.",
   /** Canonical origin. Every absolute SEO URL derives from this (REQ-018). No trailing slash. */
-  url: "https://buildando.com",
+  url: "https://template.buildando.com",
   /** Default author, used when a post omits `author`. */
   author: "Fernando Teixeira",
   /** Fallback BCP-47 tag. Per-page language comes from I18N below. */
@@ -132,7 +132,7 @@ export const INTEGRATIONS = {
  * Leave `repoId` empty to disable the embed until configured.
  */
 export const GISCUS = {
-  repo: "Buildando/buildando.com",
+  repo: "Buildando/template.buildando.com",
   repoId: "",
   category: "Comentários",
   categoryId: "",

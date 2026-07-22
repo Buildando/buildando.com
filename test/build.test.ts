@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { SITE } from "../src/config/site";
+
+// Absolute SEO URLs derive from the one configured origin (REQ-018), so a fork
+// changing SITE.url does not break these assertions.
+const origin = SITE.url;
 
 // Build-output assertions. Skipped unless dist/ exists — run `npm run test:build`
 // (which builds first), or `npm run build` before `npm test`.
@@ -25,8 +30,8 @@ describe.skipIf(!existsSync(dist))("build output", () => {
 
   it("emits full SEO on a post page (REQ-011–013, 018)", () => {
     const html = read("pt", "posts", "o-que-e-o-buildando", "index.html");
-    expect(html).toMatch(/<link rel="canonical" href="https:\/\/buildando\.com/);
-    expect(html).toContain('property="og:image" content="https://buildando.com/');
+    expect(html).toContain(`<link rel="canonical" href="${origin}/`);
+    expect(html).toContain(`property="og:image" content="${origin}/`);
     expect(html).toContain('name="twitter:card"');
     expect(html).toContain('"@type":"BlogPosting"');
     expect(html).toContain('"@type":"BreadcrumbList"'); // REQ-013
@@ -36,9 +41,7 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     // All shipped posts now have covers; the auto OG-card path (og/[...route].ts)
     // stays for cover-less posts a forker adds, but there is no shipped example.
     const html = read("pt", "posts", "criando-posts", "index.html");
-    expect(html).toMatch(
-      /property="og:image" content="https:\/\/buildando\.com\/_astro\/[^"]+"/,
-    );
+    expect(html).toContain(`property="og:image" content="${origin}/_astro/`);
   });
 
   it("excludes drafts from the production build (REQ-007)", () => {
@@ -75,7 +78,7 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(fb).toContain('aria-label="Main"'); // nav chrome in English (nav.aria)
     expect(fb).toContain('<article lang="pt-BR"'); // body marked Portuguese
     expect(fb).toContain(
-      'rel="canonical" href="https://buildando.com/pt/posts/criando-posts/"',
+      `rel="canonical" href="${origin}/pt/posts/criando-posts/"`,
     );
   });
 
@@ -142,6 +145,7 @@ describe("pure logic stays unit-testable (architecture)", () => {
 
 describe("identity confined to the config surface (REQ-030)", () => {
   it("the domain appears in src only inside config/site.ts", () => {
+    const host = new URL(SITE.url).host; // whatever a fork configures
     const offenders: string[] = [];
     const walk = (dir: string) => {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -150,7 +154,7 @@ describe("identity confined to the config surface (REQ-030)", () => {
           walk(full);
         } else if (/\.(astro|ts|js|md)$/.test(entry.name)) {
           if (full.endsWith(join("config", "site.ts"))) continue;
-          if (readFileSync(full, "utf8").includes("buildando.com")) {
+          if (readFileSync(full, "utf8").includes(host)) {
             offenders.push(full);
           }
         }

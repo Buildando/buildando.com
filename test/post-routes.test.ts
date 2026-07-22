@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { planPostRoutes, type PlannedRoute } from "../src/lib/post-routes";
+import { SITE } from "../src/config/site";
+
+// Absolute URLs derive from the one configured origin, so a fork restyles the
+// domain without touching these expectations (REQ-018, REQ-030).
+const origin = SITE.url;
 
 const find = (routes: PlannedRoute[], lang: string, slug: string) =>
   routes.find((r) => r.params.lang === lang && r.params.slug === slug);
@@ -33,9 +38,9 @@ describe("planPostRoutes — fully translated pair (REQ-032, REQ-033)", () => {
   it("hreflang lists both real versions and x-default", () => {
     const alts = find(routes, "pt", "a")!.alternates;
     const map = Object.fromEntries(alts.map((a) => [a.hreflang, a.href]));
-    expect(map["pt-BR"]).toBe("https://buildando.com/pt/posts/a/");
-    expect(map["en"]).toBe("https://buildando.com/en/posts/b/");
-    expect(map["x-default"]).toBe("https://buildando.com/pt/posts/a/");
+    expect(map["pt-BR"]).toBe(`${origin}/pt/posts/a/`);
+    expect(map["en"]).toBe(`${origin}/en/posts/b/`);
+    expect(map["x-default"]).toBe(`${origin}/pt/posts/a/`);
   });
 });
 
