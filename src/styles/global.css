@@ -75,6 +75,14 @@ code {
   margin: 1rem 0;
 }
 
+/* Justify running paragraphs; hyphenate (per the page's lang) so justification
+   doesn't open rivers of whitespace on narrow columns. Set text-align: left to
+   turn it off. */
+.prose p {
+  text-align: justify;
+  hyphens: auto;
+}
+
 .prose pre {
   padding: 1rem;
   border-radius: 8px;
