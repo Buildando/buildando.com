@@ -79,9 +79,9 @@ logo no topo do arquivo — troque pelo seu. O link no menu já aponta para ela.
 
 ## 6. Publicando
 
-`npm run build` gera a pasta `dist/` estática, que vai para qualquer hospedagem. O
-template já inclui um deploy automático para o HostGator via GitHub Actions (veja o
-`README`), mas serve em qualquer host estático.
+`npm run build` gera a pasta `dist/` estática, que serve em **qualquer**
+hospedagem. O template já inclui um workflow de deploy automático via GitHub
+Actions (veja o `README`) — é só apontá-lo para o seu host.
 
 Pronto — o esqueleto é seu. O próximo passo é o que mais importa:
 [criar posts](/pt/posts/criando-posts/).
