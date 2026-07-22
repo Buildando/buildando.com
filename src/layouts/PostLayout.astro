@@ -28,6 +28,20 @@ const image = typeof ogSrc === "string" ? ogSrc : ogSrc?.src;
 
 const path = `/${uiLang}/posts/${post.slug}/`;
 const canonicalURL = data.canonicalURL ?? absoluteUrl(canonicalPath);
+
+// Breadcrumb trail (REQ-013): Home › [Category] › Post. Built in the content
+// language so its URLs match the canonical (facet pages exist in that locale).
+const tc = useTranslations(contentLang);
+const breadcrumbs = [
+  { name: tc("nav.home"), url: absoluteUrl(localizedPath(contentLang, "/")) },
+  ...(data.category
+    ? [{
+        name: data.category,
+        url: absoluteUrl(localizedPath(contentLang, `/categories/${data.category}/`)),
+      }]
+    : []),
+  { name: data.title, url: canonicalURL },
+];
 ---
 
 <BaseLayout
@@ -44,6 +58,7 @@ const canonicalURL = data.canonicalURL ?? absoluteUrl(canonicalPath);
   author={data.author}
   keywords={data.keywords}
   alternates={alternates}
+  breadcrumbs={breadcrumbs}
   langSwitch={langSwitch}
 >
   <!-- The article body keeps its own language for correct pronunciation/indexing. -->

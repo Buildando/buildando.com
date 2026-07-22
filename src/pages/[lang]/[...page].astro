@@ -5,6 +5,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import PostCard from "../../components/PostCard.astro";
 import Pagination from "../../components/Pagination.astro";
 import { SITE, POSTS_PER_PAGE } from "../../config/site";
+import { absoluteUrl } from "../../lib/seo";
 import {
   getPublishedPosts,
   getCategories,
@@ -80,6 +81,8 @@ const path = page.url.current ?? localizedPath(lang, "/");
   path={path}
   lang={lang}
   alternates={isFirst ? hreflangAlternates("/") : []}
+  prev={page.url.prev ? absoluteUrl(page.url.prev) : undefined}
+  next={page.url.next ? absoluteUrl(page.url.next) : undefined}
 >
   {
     isFirst && (

@@ -5,6 +5,7 @@ import PostCard from "../../../../components/PostCard.astro";
 import Pagination from "../../../../components/Pagination.astro";
 import { getCategories, type Post } from "../../../../lib/posts";
 import { POSTS_PER_PAGE } from "../../../../config/site";
+import { absoluteUrl } from "../../../../lib/seo";
 import { locales, useTranslations, localizedPath } from "../../../../i18n";
 
 // One paginated listing per distinct category, per locale (REQ-019, REQ-037).
@@ -25,6 +26,11 @@ const { lang, category } = Astro.params;
 const page = Astro.props.page as Page<Post>;
 const t = useTranslations(lang);
 const path = page.url.current ?? localizedPath(lang, `/categories/${category}/`);
+
+const breadcrumbs = [
+  { name: t("nav.home"), url: absoluteUrl(localizedPath(lang, "/")) },
+  { name: category, url: absoluteUrl(path) },
+];
 ---
 
 <BaseLayout
@@ -32,6 +38,9 @@ const path = page.url.current ?? localizedPath(lang, `/categories/${category}/`)
   description={`${t("category.for")} ${category}`}
   path={path}
   lang={lang}
+  breadcrumbs={breadcrumbs}
+  prev={page.url.prev ? absoluteUrl(page.url.prev) : undefined}
+  next={page.url.next ? absoluteUrl(page.url.next) : undefined}
 >
   <h1>{category}</h1>
   {page.data.map((post) => <PostCard post={post} />)}

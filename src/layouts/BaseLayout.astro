@@ -29,6 +29,9 @@ interface Props {
   author?: string;
   keywords?: string[];
   alternates?: { hreflang: string; href: string }[];
+  breadcrumbs?: { name: string; url: string }[];
+  prev?: string;
+  next?: string;
   /** Per-locale switcher targets, when the default segment-swap is not correct. */
   langSwitch?: Record<string, string>;
 }

@@ -29,6 +29,7 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(html).toContain('property="og:image" content="https://buildando.com/');
     expect(html).toContain('name="twitter:card"');
     expect(html).toContain('"@type":"BlogPosting"');
+    expect(html).toContain('"@type":"BreadcrumbList"'); // REQ-013
   });
 
   it("renders the home hero from markdown (REQ-034)", () => {
