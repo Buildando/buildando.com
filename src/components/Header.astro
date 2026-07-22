@@ -222,8 +222,21 @@ const switchHref = (code: string) => langSwitch?.[code] ?? localizedPath(code, r
     display: inline;
   }
   @media (max-width: 640px) {
-    .brand span {
-      display: none;
+    /* Nav drops to its own full-width row so labels never break mid-word. */
+    .wrap {
+      flex-wrap: wrap;
+      row-gap: 0.5rem;
+    }
+    nav {
+      order: 3;
+      flex-basis: 100%;
+    }
+    nav ul {
+      justify-content: center;
+      gap: 1.25rem;
+    }
+    nav a {
+      white-space: nowrap;
     }
   }
 </style>

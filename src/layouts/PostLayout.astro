@@ -73,7 +73,7 @@ const breadcrumbs = [
       <h1>{data.title}</h1>
       <p class="meta">
         <time datetime={isoDate(data.publishDate)}>{formatDate(data.publishDate, uiLang)}</time>
-        {data.updatedDate && <> · {t("post.updated")} {formatDate(data.updatedDate, uiLang)}</>}
+        {data.updatedDate && <> · {t("post.updated")}{" "}{formatDate(data.updatedDate, uiLang)}</>}
         {data.category && (
           <> · <a href={localizedPath(contentLang, `/categories/${data.category}/`)}>{data.category}</a></>
         )}
