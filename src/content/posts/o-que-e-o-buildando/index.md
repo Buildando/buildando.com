@@ -11,7 +11,7 @@ tags:
   - astro
   - sobre
 cover: ./cover.png
-coverAlt: "A home do blog Buildando"
+coverAlt: "Capa ilustrada: O que é o Buildando — template de blog estático"
 ---
 
 **Buildando** é um _template_ de blog: um ponto de partida pronto para você

@@ -8,6 +8,8 @@ tags:
   - posts
   - markdown
   - guia
+cover: ./cover.png
+coverAlt: "Capa ilustrada: Criando posts no Buildando"
 ---
 
 Com o blog [instalado e personalizado](/pt/posts/instalando-e-personalizando/),
@@ -60,8 +62,9 @@ configurar nada:
 ![Um diagrama](./diagrama.png)
 ```
 
-Um detalhe legal: **posts sem `cover`** — como este — ganham automaticamente um
-**card social com a sua marca**, gerado no build. Compartilhe o link e veja.
+Um detalhe legal: se você **não** definir uma `cover`, o post ganha
+**automaticamente** um card social com a sua marca, gerado no build — assim todo
+post fica com uma boa imagem ao ser compartilhado, mesmo sem você desenhar uma.
 
 ## Rascunhos
 

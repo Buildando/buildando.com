@@ -32,12 +32,13 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(html).toContain('"@type":"BreadcrumbList"'); // REQ-013
   });
 
-  it("generates a dynamic OG card for a cover-less post (REQ-012)", () => {
+  it("uses the post cover as og:image, absolute under the domain (REQ-012)", () => {
+    // All shipped posts now have covers; the auto OG-card path (og/[...route].ts)
+    // stays for cover-less posts a forker adds, but there is no shipped example.
     const html = read("pt", "posts", "criando-posts", "index.html");
-    expect(html).toContain(
-      'property="og:image" content="https://buildando.com/og/criando-posts.png"',
+    expect(html).toMatch(
+      /property="og:image" content="https:\/\/buildando\.com\/_astro\/[^"]+"/,
     );
-    expect(has("og", "criando-posts.png")).toBe(true);
   });
 
   it("excludes drafts from the production build (REQ-007)", () => {
