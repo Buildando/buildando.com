@@ -1,58 +1,31 @@
 ---
-// Cookie consent (REQ-042). When Google Analytics or AdSense is configured and
-// consent is required, those cookie-setting scripts are NOT emitted statically —
-// they are injected by this script only after the reader accepts, so nothing is
-// set before consent. Plausible is handled in BaseHead (cookieless, no consent).
-// Renders nothing when neither GA nor AdSense is configured.
-import { ANALYTICS, CONSENT } from "../config/site";
-import { useTranslations } from "../i18n";
+// Cookie consent coordinator (REQ-042), provider-agnostic. Cookie-setting
+// adapters (GA, AdSense, …) register a loader on `window.__consentLoaders`; this
+// runs them only after the reader accepts — or immediately when consent is not
+// required. `gated` (from the Analytics port) says whether any such provider is
+// configured; when false, nothing renders, so the default build stays clean.
+import { CONSENT } from "../../config/site";
+import { useTranslations } from "../../i18n";
 
 interface Props {
   lang: string;
+  gated: boolean;
 }
-const { lang } = Astro.props;
+const { lang, gated } = Astro.props;
 const t = useTranslations(lang);
 
-const ga = ANALYTICS.googleAnalytics;
-const ads = ANALYTICS.adsense;
-const gated = Boolean(ga || ads);
-
 const consentScript = `(function(){
-  var GA=${JSON.stringify(ga || "")};
-  var ADS=${JSON.stringify(ads || "")};
-  var REQUIRED=${CONSENT.required ? "true" : "false"};
-  var KEY="consent";
-  function loadGA(){
-    if(!GA) return;
-    var s=document.createElement("script"); s.async=true;
-    s.src="https://www.googletagmanager.com/gtag/js?id="+GA;
-    document.head.appendChild(s);
-    window.dataLayer=window.dataLayer||[];
-    function gtag(){dataLayer.push(arguments);}
-    gtag("js", new Date()); gtag("config", GA);
-  }
-  function loadAds(){
-    if(!ADS) return;
-    var s=document.createElement("script"); s.async=true; s.crossOrigin="anonymous";
-    s.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+ADS;
-    document.head.appendChild(s);
-  }
-  function loadAll(){ loadGA(); loadAds(); }
-  var decision=null;
-  try { decision=localStorage.getItem(KEY); } catch(e){}
-  if(!REQUIRED){ loadAll(); return; }
-  if(decision==="granted"){ loadAll(); return; }
+  function runAll(){ (window.__consentLoaders||[]).forEach(function(fn){ try{fn();}catch(e){} }); }
+  var required=${CONSENT.required ? "true" : "false"};
+  var decision=null; try{ decision=localStorage.getItem("consent"); }catch(e){}
+  if(!required){ runAll(); return; }
+  if(decision==="granted"){ runAll(); return; }
   if(decision==="denied"){ return; }
   var banner=document.getElementById("consent-banner");
   if(!banner) return;
   banner.hidden=false;
-  function decide(v){
-    try { localStorage.setItem(KEY, v); } catch(e){}
-    banner.hidden=true;
-    if(v==="granted") loadAll();
-  }
-  var a=document.getElementById("consent-accept");
-  var r=document.getElementById("consent-reject");
+  function decide(v){ try{ localStorage.setItem("consent", v); }catch(e){} banner.hidden=true; if(v==="granted") runAll(); }
+  var a=document.getElementById("consent-accept"), r=document.getElementById("consent-reject");
   if(a) a.addEventListener("click", function(){ decide("granted"); });
   if(r) r.addEventListener("click", function(){ decide("denied"); });
 })();`;

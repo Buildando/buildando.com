@@ -1,0 +1,18 @@
+---
+// Search PORT (REQ-043). Renders the search-UI adapter named by
+// INTEGRATIONS.search into the given mount id. Used by both the header modal and
+// the /search page, so a swap covers both. The build-time index step is a
+// separate seam (package.json build script). See src/integrations/README.md.
+import { INTEGRATIONS } from "../config/site";
+import Pagefind from "./search/pagefind/Pagefind.astro";
+
+interface Props {
+  id: string;
+  lang: string;
+}
+const { id, lang } = Astro.props;
+const provider = INTEGRATIONS.search;
+---
+
+{provider === "pagefind" && <Pagefind id={id} lang={lang} />}
+{/* "none" renders nothing */}

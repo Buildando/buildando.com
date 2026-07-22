@@ -1,0 +1,16 @@
+---
+// Analytics adapter — Google Analytics 4 (cookie-setting). Registers a loader on
+// the consent queue instead of loading directly, so it runs only after consent
+// (or immediately when consent is not required — the ConsentBanner decides).
+import { ANALYTICS } from "../../../config/site";
+const id = ANALYTICS.googleAnalytics;
+const loader = id
+  ? `(window.__consentLoaders=window.__consentLoaders||[]).push(function(){` +
+    `var s=document.createElement("script");s.async=true;` +
+    `s.src="https://www.googletagmanager.com/gtag/js?id=${id}";document.head.appendChild(s);` +
+    `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}` +
+    `gtag("js",new Date());gtag("config","${id}");});`
+  : "";
+---
+
+{id && <script is:inline set:html={loader} />}

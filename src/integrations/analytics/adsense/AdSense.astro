@@ -1,0 +1,15 @@
+---
+// Analytics adapter — Google AdSense (cookie-setting). Registers a loader on the
+// consent queue; the ConsentBanner runs it after consent (or immediately when
+// consent is not required).
+import { ANALYTICS } from "../../../config/site";
+const id = ANALYTICS.adsense;
+const loader = id
+  ? `(window.__consentLoaders=window.__consentLoaders||[]).push(function(){` +
+    `var s=document.createElement("script");s.async=true;s.crossOrigin="anonymous";` +
+    `s.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${id}";` +
+    `document.head.appendChild(s);});`
+  : "";
+---
+
+{id && <script is:inline set:html={loader} />}

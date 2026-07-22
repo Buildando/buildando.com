@@ -1,0 +1,25 @@
+---
+// Analytics PORT (REQ-043). Renders each configured analytics adapter plus the
+// consent coordinator. Unlike comments (pick one), analytics is multi-enable:
+// each adapter self-guards on its own config, so this renders whatever is set and
+// nothing when nothing is. Cookie-setting adapters register consent loaders that
+// the ConsentBanner runs; the register scripts must precede the coordinator, so
+// order matters here. Add a provider: an adapter under ./analytics/<name>/ and a
+// line here (include it in `gated` if it sets cookies).
+import { ANALYTICS } from "../config/site";
+import Plausible from "./analytics/plausible/Plausible.astro";
+import GoogleAnalytics from "./analytics/google-analytics/GoogleAnalytics.astro";
+import AdSense from "./analytics/adsense/AdSense.astro";
+import ConsentBanner from "./analytics/ConsentBanner.astro";
+
+interface Props {
+  lang: string;
+}
+const { lang } = Astro.props;
+const gated = Boolean(ANALYTICS.googleAnalytics || ANALYTICS.adsense);
+---
+
+<Plausible />
+<GoogleAnalytics />
+<AdSense />
+<ConsentBanner lang={lang} gated={gated} />

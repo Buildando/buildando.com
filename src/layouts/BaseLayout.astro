@@ -7,7 +7,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import NewsletterForm from "../components/NewsletterForm.astro";
 import SearchModal from "../components/SearchModal.astro";
-import ConsentBanner from "../components/ConsentBanner.astro";
+import Analytics from "../integrations/Analytics.astro";
 import { SITE, BRAND, THEME } from "../config/site";
 import { localeMeta } from "../i18n";
 // Self-hosted variable fonts (no external request). Bundled into the build.
@@ -90,6 +90,6 @@ const shikiCss =
     <NewsletterForm lang={lang} />
     <Footer lang={lang} />
     <SearchModal lang={lang} />
-    <ConsentBanner lang={lang} />
+    <Analytics lang={lang} />
   </body>
 </html>

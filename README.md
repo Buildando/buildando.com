@@ -176,21 +176,23 @@ consent line ships with the form, but no full consent flow.
 ## Integrations (swap or contribute)
 
 Render-time integrations sit behind a **port + adapter** structure so they are easy
-to swap and to extend with new technologies. Comments is the first: choose the
-provider by name in `src/config/site.ts` under `INTEGRATIONS` —
+to swap and to extend with new technologies. **Comments**, **search**, and
+**analytics** are ported — choose providers by name in `src/config/site.ts`:
 
 ```ts
 export const INTEGRATIONS = {
-  comments: "giscus", // "giscus" | "utterances" | "none"
+  comments: "giscus",  // "giscus" | "utterances" | "none"
+  search: "pagefind",  // "pagefind" | "none"
 } as const;
 ```
 
-— and each provider is an adapter under `src/integrations/comments/<name>/`.
-Swapping is a one-word change; adding a provider (e.g. Disqus, Commento) is a new
-adapter folder plus one line in the port. Contributions welcome — see
-[`src/integrations/README.md`](src/integrations/README.md) for the guide. Build-time
-integrations (search index, RSS, sitemap, OG images, deploy) are each a single
-documented seam listed there.
+Each provider is an adapter under `src/integrations/<kind>/<name>/`. Swapping is a
+one-word change; adding a provider (e.g. Disqus, Algolia, Umami) is a new adapter
+folder plus one line in the port. Analytics is multi-enable (Plausible + GA +
+AdSense, each toggled by its config, with a provider-agnostic consent coordinator).
+Contributions welcome — see [`src/integrations/README.md`](src/integrations/README.md)
+for the guide, which also lists the build-time seams (search index, RSS, sitemap,
+OG images, deploy).
 
 ## Deploying to HostGator
 

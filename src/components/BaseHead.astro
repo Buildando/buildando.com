@@ -2,7 +2,7 @@
 // SEO head: title, description, canonical, Open Graph, Twitter Card, JSON-LD,
 // and hreflang alternates. Emitted for every page automatically
 // (REQ-011, REQ-012, REQ-013, REQ-018, REQ-032).
-import { SITE, ANALYTICS } from "../config/site";
+import { SITE } from "../config/site";
 import { absoluteUrl } from "../lib/seo";
 import { localeMeta, siteTitle, siteDescription } from "../i18n";
 
@@ -150,16 +150,6 @@ const breadcrumbJsonLd =
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
 )}
 
-<!-- Privacy-friendly analytics (REQ-038): cookieless, so no consent needed. GA
-     and AdSense are consent-gated in ConsentBanner (REQ-042). Nothing is emitted
-     when its id is empty, so the default build makes no third-party request. -->
-{
-  ANALYTICS.plausible && (
-    <script
-      is:inline
-      defer
-      data-domain={ANALYTICS.plausible}
-      src="https://plausible.io/js/script.js"
-    />
-  )
-}
+<!-- Analytics/ads (Plausible, GA, AdSense) and cookie consent are handled by the
+     Analytics port (REQ-042, REQ-043), mounted once in BaseLayout. -->
+

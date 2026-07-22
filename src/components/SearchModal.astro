@@ -1,8 +1,9 @@
 ---
-// In-layout search (REQ-036): a modal opened by the header icon, by "/" or by
-// Ctrl/Cmd+K. Reuses the Pagefind index (REQ-020), loaded lazily on first open.
-// Without JS, the header trigger is a plain link to /{lang}/search.
+// In-layout search shell (REQ-036): a modal opened by the header icon, by "/" or
+// by Ctrl/Cmd+K. Provider-agnostic — it hosts the Search port and just triggers
+// its init on open. Without JS, the header trigger is a plain link to /{lang}/search.
 import { useTranslations } from "../i18n";
+import Search from "../integrations/Search.astro";
 
 interface Props {
   lang: string;
@@ -13,12 +14,7 @@ const t = useTranslations(lang);
 
 <dialog id="search-dialog" class="search-dialog" aria-label={t("search.open")}>
   <div class="search-dialog-inner">
-    <div
-      id="search-modal-mount"
-      data-lang={lang}
-      data-building={t("search.building")}
-    >
-    </div>
+    <Search id="search-modal-mount" lang={lang} />
   </div>
 </dialog>
 
@@ -26,45 +22,12 @@ const t = useTranslations(lang);
   (function () {
     var dialog = document.getElementById("search-dialog");
     if (!dialog || typeof dialog.showModal !== "function") return;
-    var mount = document.getElementById("search-modal-mount");
-    var loaded = false;
-
-    function ensure() {
-      if (loaded) return;
-      loaded = true;
-      var css = document.createElement("link");
-      css.rel = "stylesheet";
-      css.href = "/pagefind/pagefind-ui.css";
-      document.head.appendChild(css);
-      import("/pagefind/pagefind-ui.js")
-        .then(function () {
-          new PagefindUI({
-            element: "#search-modal-mount",
-            showSubResults: true,
-            showImages: false,
-            translations: {
-              placeholder: mount.dataset.lang === "en" ? "Search" : "Buscar",
-            },
-          });
-        })
-        .catch(function () {
-          mount.innerHTML =
-            '<p style="color:var(--color-muted)">' +
-            (mount.dataset.building || "") +
-            "</p>";
-        });
-    }
-
     function open() {
       if (dialog.open) return;
       dialog.showModal();
-      ensure();
-      setTimeout(function () {
-        var input = dialog.querySelector("input");
-        if (input) input.focus();
-      }, 0);
+      var fn = (window.__searchInit || {})["search-modal-mount"];
+      if (fn) fn();
     }
-
     var triggers = document.querySelectorAll(".search-trigger");
     for (var i = 0; i < triggers.length; i++) {
       triggers[i].addEventListener("click", function (e) {
@@ -72,21 +35,19 @@ const t = useTranslations(lang);
         open();
       });
     }
-
     document.addEventListener("keydown", function (e) {
       var el = e.target;
       var typing =
         el &&
         (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable);
-      var slash = e.key === "/" && !typing;
-      var cmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k";
-      if (slash || cmdK) {
+      if (
+        (e.key === "/" && !typing) ||
+        ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k")
+      ) {
         e.preventDefault();
         open();
       }
     });
-
-    // Click on the backdrop closes.
     dialog.addEventListener("click", function (e) {
       if (e.target === dialog) dialog.close();
     });

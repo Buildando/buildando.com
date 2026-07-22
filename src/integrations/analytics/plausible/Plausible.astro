@@ -1,0 +1,12 @@
+---
+// Analytics adapter — Plausible (cookieless, no consent needed). Renders its
+// script directly when ANALYTICS.plausible is set; nothing otherwise.
+import { ANALYTICS } from "../../../config/site";
+const domain = ANALYTICS.plausible;
+---
+
+{
+  domain && (
+    <script is:inline defer data-domain={domain} src="https://plausible.io/js/script.js" />
+  )
+}

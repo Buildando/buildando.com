@@ -118,6 +118,9 @@ export const SHARE = {
 export const INTEGRATIONS = {
   /** Comments provider: "giscus" | "utterances" | "none". */
   comments: "giscus",
+  /** Search UI provider: "pagefind" | "none". The build-time index step lives in
+      the `build` script in package.json (see src/integrations/README.md). */
+  search: "pagefind",
 } as const;
 
 /**
