@@ -10,7 +10,8 @@
     "astro": "astro",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:build": "npm run build && vitest run test/build.test.ts"
+    "test:build": "npm run build && vitest run test/build.test.ts",
+    "audit": "npx --yes lighthouse http://localhost:4321/ --view --chrome-flags=\"--headless\" --only-categories=performance,accessibility,best-practices,seo"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.11",

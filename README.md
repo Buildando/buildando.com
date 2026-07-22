@@ -64,9 +64,31 @@ npm run build      # builds dist/ (astro build + search index) — drafts exclud
 npm run preview    # serves the built dist/
 npm test           # tests (unit; build assertions run when dist/ exists)
 npm run test:build # build + assertions over dist/
+npm run audit      # Lighthouse (SEO/perf/a11y/best-practices) — see below
 ```
 
 Requires Node 22+ (see `.nvmrc`).
+
+### Auditing SEO & performance locally
+
+`npm run audit` runs [Lighthouse](https://developer.chrome.com/docs/lighthouse)
+against the running preview and opens the report. It checks SEO, performance,
+accessibility, and best practices locally — no deploy needed (only actual search
+indexing requires the live site). In one terminal:
+
+```bash
+npm run build && npm run preview   # serves the built site on :4321
+```
+
+then, in another:
+
+```bash
+npm run audit
+```
+
+Lighthouse is fetched on demand via `npx`, so it is **not** a fixed dependency.
+Point the script at another page (e.g. `/pt/posts/<slug>/`) by editing it, or run
+`npx lighthouse <url> --view` directly.
 
 ## Writing a post
 
