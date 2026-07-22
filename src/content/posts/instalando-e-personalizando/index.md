@@ -8,6 +8,8 @@ tags:
   - instalação
   - configuração
   - guia
+cover: ./cover.png
+coverAlt: "A home do Buildando no tema claro"
 ---
 
 Você já viu [o que é o Buildando](/pt/posts/o-que-e-o-buildando/). Agora vamos
