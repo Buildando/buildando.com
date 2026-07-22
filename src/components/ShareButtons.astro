@@ -1,0 +1,109 @@
+---
+// Social share buttons (REQ-040). Static share-intent links (no JS) plus an
+// optional "copy link" button that appears only when the browser supports the
+// clipboard. Which networks show is config-driven; distinct from the OG image
+// (which is the preview shown when a link is shared).
+import { SHARE } from "../config/site";
+import { useTranslations } from "../i18n";
+
+interface Props {
+  /** Absolute canonical URL of the post. */
+  url: string;
+  title: string;
+  lang: string;
+}
+const { url, title, lang } = Astro.props;
+const t = useTranslations(lang);
+const e = encodeURIComponent;
+
+const intents: Record<string, { label: string; href: string }> = {
+  x: { label: "X", href: `https://x.com/intent/tweet?text=${e(title)}&url=${e(url)}` },
+  whatsapp: { label: "WhatsApp", href: `https://wa.me/?text=${e(`${title} ${url}`)}` },
+  telegram: { label: "Telegram", href: `https://t.me/share/url?url=${e(url)}&text=${e(title)}` },
+  linkedin: { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${e(url)}` },
+  facebook: { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}` },
+};
+
+const items = SHARE.networks.map((n) => intents[n]).filter(Boolean);
+const show = items.length > 0 || SHARE.copyLink;
+
+const copyScript = `(function(){
+  var btn = document.querySelector('.share-copy');
+  if (!btn || !navigator.clipboard) return;
+  btn.hidden = false;
+  btn.addEventListener('click', function(){
+    navigator.clipboard.writeText(btn.dataset.url).then(function(){
+      var label = btn.textContent;
+      btn.textContent = btn.dataset.copied;
+      setTimeout(function(){ btn.textContent = label; }, 2000);
+    });
+  });
+})();`;
+---
+
+{
+  show && (
+    <section class="share" aria-label={t("share.title")}>
+      <span class="share-label">{t("share.title")}</span>
+      <ul>
+        {items.map((i) => (
+          <li>
+            <a class="share-btn" href={i.href} target="_blank" rel="noopener">
+              {i.label}
+            </a>
+          </li>
+        ))}
+        {SHARE.copyLink && (
+          <li>
+            <button class="share-btn share-copy" type="button" data-url={url} data-copied={t("share.copied")} hidden>
+              {t("share.copy")}
+            </button>
+          </li>
+        )}
+      </ul>
+      {SHARE.copyLink && <script is:inline set:html={copyScript} />}
+    </section>
+  )
+}
+
+<style>
+  .share {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .share-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-muted);
+  }
+  .share ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .share-btn {
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .share-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+</style>

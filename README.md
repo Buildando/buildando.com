@@ -47,6 +47,8 @@ and giscus. Each step is detailed below.
 - **Client-side full-text search** ([Pagefind](https://pagefind.app)), no server.
 - **Comments** via [giscus](https://giscus.app) (GitHub Discussions), loaded on
   demand.
+- **Share buttons** on posts (X, WhatsApp, Telegram, LinkedIn, Facebook + copy
+  link), config-driven, mostly no-JS share-intent links.
 - **Light/dark theme** with a header toggle, remembered, no flash on load.
 - **Internationalization (i18n)**: per-locale routes (`/pt/`, `/en/`), translated
   interface, a language switcher, `hreflang`, and a per-locale feed.

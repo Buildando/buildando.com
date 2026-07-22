@@ -92,6 +92,17 @@ export const NAV = [
 ] as const;
 
 /**
+ * Social share buttons on posts (REQ-040). `networks` lists which share-intent
+ * links appear (known: x, whatsapp, telegram, linkedin, facebook); an empty list
+ * plus `copyLink: false` hides the row. The links need no JavaScript; "copy link"
+ * is a progressive enhancement shown only when the browser supports it.
+ */
+export const SHARE = {
+  networks: ["x", "whatsapp", "telegram", "linkedin", "facebook"],
+  copyLink: true,
+} as const;
+
+/**
  * giscus / GitHub Discussions (REQ-022–REQ-024).
  * Get repoId and categoryId from https://giscus.app after:
  *   - making the repo public,

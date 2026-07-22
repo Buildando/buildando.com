@@ -77,6 +77,13 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(read("pt", "index.html")).not.toContain('class="newsletter"');
   });
 
+  it("shows share buttons on a post (REQ-040)", () => {
+    const html = read("pt", "posts", "exemplo-bem-vindo-ao-buildando", "index.html");
+    expect(html).toContain("x.com/intent/tweet");
+    expect(html).toContain("wa.me/?text=");
+    expect(html).toContain("share-copy"); // copy-link button present
+  });
+
   it("renders the home facet filter, hidden until JS (REQ-035)", () => {
     const html = read("pt", "index.html");
     expect(html).toContain('id="filter-bar" hidden');
