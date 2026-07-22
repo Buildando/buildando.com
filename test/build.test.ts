@@ -98,7 +98,8 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     const html = read("pt", "posts", "exemplo-bem-vindo-ao-buildando", "index.html");
     expect(html).toContain("x.com/intent/tweet");
     expect(html).toContain("wa.me/?text=");
-    expect(html).toContain("share-copy"); // copy-link button present
+    expect(html).toContain("share-copy"); // copy-link button
+    expect(html).toContain("share-native"); // native Web Share button
   });
 
   it("renders the home facet filter, hidden until JS (REQ-035)", () => {

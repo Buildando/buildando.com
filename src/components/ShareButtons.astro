@@ -1,7 +1,8 @@
 ---
 // Social share buttons (REQ-040). Static share-intent links (no JS) as duotone
-// icon chips, plus an optional "copy link" button that appears only when the
-// browser supports the clipboard. Config-driven; distinct from the OG image.
+// icon chips, plus optional progressive-enhancement buttons: a native share
+// (Web Share API) and a "copy link", each shown only when the browser supports
+// it. Config-driven; distinct from the OG image.
 import { SHARE } from "../config/site";
 import { useTranslations } from "../i18n";
 import Icon from "./Icon.astro";
@@ -27,18 +28,28 @@ const intents: Record<string, { label: string; href: string }> = {
 const items = SHARE.networks
   .map((n) => (intents[n] ? { name: n, ...intents[n] } : null))
   .filter((i): i is { name: string; label: string; href: string } => i !== null);
-const show = items.length > 0 || SHARE.copyLink;
+const show = items.length > 0 || SHARE.copyLink || SHARE.native;
 
-const copyScript = `(function(){
-  var btn = document.querySelector('.share-copy');
-  if (!btn || !navigator.clipboard) return;
-  btn.hidden = false;
-  btn.addEventListener('click', function(){
-    navigator.clipboard.writeText(btn.dataset.url).then(function(){
-      btn.classList.add('copied');
-      setTimeout(function(){ btn.classList.remove('copied'); }, 2000);
+// One inline script for both progressive enhancements: reveal the native/copy
+// buttons only when supported, and wire them up.
+const behaviorScript = `(function(){
+  var nb = document.querySelector(".share-native");
+  if (nb && navigator.share) {
+    nb.hidden = false;
+    nb.addEventListener("click", function(){
+      navigator.share({ title: nb.dataset.title, url: nb.dataset.url }).catch(function(){});
     });
-  });
+  }
+  var cb = document.querySelector(".share-copy");
+  if (cb && navigator.clipboard) {
+    cb.hidden = false;
+    cb.addEventListener("click", function(){
+      navigator.clipboard.writeText(cb.dataset.url).then(function(){
+        cb.classList.add("copied");
+        setTimeout(function(){ cb.classList.remove("copied"); }, 2000);
+      });
+    });
+  }
 })();`;
 ---
 
@@ -47,6 +58,19 @@ const copyScript = `(function(){
     <section class="share" aria-label={t("share.title")}>
       <span class="share-label">{t("share.title")}</span>
       <ul>
+        {SHARE.native && (
+          <li>
+            <button class="icon-chip share-native" type="button" data-title={title} data-url={url} aria-label={t("share.title")} title={t("share.title")} hidden>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+            </button>
+          </li>
+        )}
         {items.map((i) => (
           <li>
             <a class="icon-chip" href={i.href} target="_blank" rel="noopener" aria-label={i.label} title={i.label}>
@@ -69,7 +93,7 @@ const copyScript = `(function(){
           </li>
         )}
       </ul>
-      {SHARE.copyLink && <script is:inline set:html={copyScript} />}
+      {(SHARE.native || SHARE.copyLink) && <script is:inline set:html={behaviorScript} />}
     </section>
   )
 }

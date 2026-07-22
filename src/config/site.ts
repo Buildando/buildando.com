@@ -103,6 +103,9 @@ export const NAV = [
 export const SHARE = {
   networks: ["x", "whatsapp", "telegram", "linkedin", "facebook"],
   copyLink: true,
+  /** Native share button (Web Share API). Shown only where the browser supports
+      it (mostly mobile); falls back silently to the links elsewhere. */
+  native: true,
 } as const;
 
 /**
