@@ -173,6 +173,25 @@ in `src/config/site.ts` (empty `actionUrl` renders no form):
 The form works without JavaScript. Consent/cookie obligations are yours; a short
 consent line ships with the form, but no full consent flow.
 
+## Integrations (swap or contribute)
+
+Render-time integrations sit behind a **port + adapter** structure so they are easy
+to swap and to extend with new technologies. Comments is the first: choose the
+provider by name in `src/config/site.ts` under `INTEGRATIONS` —
+
+```ts
+export const INTEGRATIONS = {
+  comments: "giscus", // "giscus" | "utterances" | "none"
+} as const;
+```
+
+— and each provider is an adapter under `src/integrations/comments/<name>/`.
+Swapping is a one-word change; adding a provider (e.g. Disqus, Commento) is a new
+adapter folder plus one line in the port. Contributions welcome — see
+[`src/integrations/README.md`](src/integrations/README.md) for the guide. Build-time
+integrations (search index, RSS, sitemap, OG images, deploy) are each a single
+documented seam listed there.
+
 ## Deploying to HostGator
 
 HostGator has **no official CLI**. Deployment is automated by GitHub Actions in

@@ -1,10 +1,10 @@
 ---
-// GitHub Discussions embed (REQ-022–REQ-024). Configured once from the config
-// surface. When it is not configured (empty repoId/categoryId) the whole section
-// renders nothing — no heading, no script (REQ-017). Loaded lazily: the giscus
-// script is injected only when the section scrolls into view.
-import { GISCUS } from "../config/site";
-import { useTranslations } from "../i18n";
+// Comments adapter — giscus (GitHub Discussions), REQ-022–REQ-024. Self-contained:
+// renders the whole section, or nothing when not configured (empty
+// repoId/categoryId → no heading, no script, REQ-017). Loaded lazily on scroll.
+// Selected by INTEGRATIONS.comments === "giscus".
+import { GISCUS } from "../../../config/site";
+import { useTranslations } from "../../../i18n";
 
 interface Props {
   /** Per-post mapping override (REQ-024); falls back to the configured mapping. */

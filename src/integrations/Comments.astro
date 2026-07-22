@@ -1,0 +1,22 @@
+---
+// Comments PORT (REQ-043). Renders the adapter named by INTEGRATIONS.comments.
+// Consumers (PostLayout) import this, never a specific provider — swapping a
+// provider is a one-word config change. Adding a provider: create an adapter
+// under ./comments/<name>/, import it here, and add a branch. Only the selected
+// adapter renders, so unused ones ship nothing. See src/integrations/README.md.
+import { INTEGRATIONS } from "../config/site";
+import Giscus from "./comments/giscus/Giscus.astro";
+import Utterances from "./comments/utterances/Utterances.astro";
+
+interface Props {
+  /** Per-post mapping/term override passed through to the adapter. */
+  term?: string;
+  lang: string;
+}
+const { term, lang } = Astro.props;
+const provider = INTEGRATIONS.comments;
+---
+
+{provider === "giscus" && <Giscus term={term} lang={lang} />}
+{provider === "utterances" && <Utterances term={term} lang={lang} />}
+{/* "none" (or any unknown value) renders nothing */}

@@ -109,6 +109,18 @@ export const SHARE = {
 } as const;
 
 /**
+ * Pluggable integrations (REQ-043). Each integration is a "port" component under
+ * src/integrations/ that renders the adapter named here. Swap a provider by
+ * changing its name (the adapter folder must exist); contribute a new one by
+ * dropping a folder in src/integrations/<kind>/<name>/ and registering it in the
+ * port. See src/integrations/README.md.
+ */
+export const INTEGRATIONS = {
+  /** Comments provider: "giscus" | "utterances" | "none". */
+  comments: "giscus",
+} as const;
+
+/**
  * giscus / GitHub Discussions (REQ-022–REQ-024).
  * Get repoId and categoryId from https://giscus.app after:
  *   - making the repo public,
@@ -126,6 +138,18 @@ export const GISCUS = {
   reactionsEnabled: "1",
   theme: "preferred_color_scheme",
   lang: "pt",
+} as const;
+
+/**
+ * Utterances adapter (comments via GitHub issues). Used when
+ * INTEGRATIONS.comments === "utterances". Empty `repo` disables it. The repo must
+ * be public with the utterances app installed (https://utteranc.es).
+ */
+export const UTTERANCES = {
+  repo: "", // "owner/repo"
+  issueTerm: "pathname", // pathname | url | title | og:title
+  label: "", // optional issue label
+  theme: "preferred-color-scheme",
 } as const;
 
 /**

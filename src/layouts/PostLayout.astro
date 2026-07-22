@@ -1,7 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import BaseLayout from "./BaseLayout.astro";
-import Giscus from "../components/Giscus.astro";
+import Comments from "../integrations/Comments.astro";
 import ShareButtons from "../components/ShareButtons.astro";
 import type { Post } from "../lib/posts";
 import { formatDate, isoDate, absoluteUrl } from "../lib/seo";
@@ -109,7 +109,7 @@ const breadcrumbs = [
 
   <ShareButtons url={canonicalURL} title={data.title} lang={uiLang} />
 
-  <Giscus term={data.discussion} lang={uiLang} />
+  <Comments term={data.discussion} lang={uiLang} />
 </BaseLayout>
 
 <style>
