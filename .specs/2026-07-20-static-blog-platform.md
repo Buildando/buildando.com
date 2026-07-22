@@ -338,16 +338,22 @@ There is no running service to observe. The signals are:
 - **WordPress migration and old-URL redirects are deferred.** Starting fresh means the current posts and their URLs are not carried over. If they later are, redirects from the WordPress permalink structure to the new URLs belong in the `.htaccess` and in a migration spec, to preserve the SEO the domain already has. Deferring this is a deliberate, revisitable choice, not an oversight.
 - **RSS full-content vs summary is undecided.** A summary feed is lighter and drives clicks; a full-content feed serves readers better. This is a small editorial choice to settle at implementation, defaulting to summary plus a link.
 - **On-home faceted filtering (`REQ-035`) — design settled.** Chips for category, tag, and month (one per month with posts, newest first, `Intl`-localized labels), filter state in the URL query string, AND across facets / OR within, and a per-facet "show more" collapse (12 chips) so many values do not wall off the posts. Implemented as a progressive-enhancement island over the already-rendered cards: the predicate and URL mapping live in the pure `src/lib/facet-filter.ts` (unit-tested), and the client script toggles card visibility. The controls are hidden and the collapse inert when JS is off, leaving the full static list — so this never fights the per-facet listing pages. The date facet is month granularity, which suits a blog and replaced an earlier month/year range and a separate date-archive section; both were dropped as redundant with these chips. A native `<input type="date">` was rejected because its widget follows the browser locale, not the page.
-- **To validate: do the facet filter and pagination work together?** They are
-  currently mutually exclusive by design — the home filter (`REQ-035`) renders only
-  when a listing fits one page (`page.lastPage === 1` in
-  `src/pages/[lang]/[...page].astro`), because it filters cards already in the DOM;
-  once `POSTS_PER_PAGE > 0` paginates, the filter is hidden and pagination takes
-  over. The open question is whether they should combine at scale. If yes, it needs
-  the client-side metadata index ("option B"): ship a small `posts.json`, filter
-  across all posts on the client, and paginate the filtered result — then test the
-  combined behavior with `POSTS_PER_PAGE > 0` and enough posts to paginate. Until
-  decided, the mutual exclusion stands and is the documented behavior.
+- **Facet filter × pagination — validated; kept mutually exclusive.** Confirmed
+  empirically (`POSTS_PER_PAGE = 1`, two posts → two pages): when a listing
+  paginates the filter bar is not rendered and pagination takes over cleanly — no
+  conflict, no error, and a stale `?cat=…` URL is simply ignored (the guard
+  `if (bar && list)` no-ops without `#filter-bar`). They are inherently at odds on a
+  static site: pagination exists to ship fewer cards, while the client filter needs
+  them all in the DOM. Coexistence would need a client-side metadata index
+  ("option B") that re-renders cards in JS — re-introducing the weight pagination
+  avoids and duplicating Astro's image optimization — judged over-engineering for a
+  blog template. **Decision: keep the mutual exclusion.** Small/medium blogs run
+  `POSTS_PER_PAGE = 0` (one page, full filter incl. month chips); large blogs
+  paginate and browse via the per-facet pages (`REQ-019`) and search (`REQ-020`).
+  Known consequence: when paginated, date-browse has no home (months live in the
+  now-hidden filter and the date archive was removed); category/tag/search still do.
+  Revisit only if a large paginated blog needs date-browse — a minimal archive
+  would be the fix.
 - **Social share buttons — done (`REQ-040`).** Static share-intent links (X,
   WhatsApp, Telegram, LinkedIn, Facebook) plus a JS-gated "copy link", at the end of
   each post, config-driven via `SHARE`. The native Web Share API was not added; it
