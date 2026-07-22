@@ -354,13 +354,16 @@ There is no running service to observe. The signals are:
   now-hidden filter and the date archive was removed); category/tag/search still do.
   Revisit only if a large paginated blog needs date-browse — a minimal archive
   would be the fix.
-- **To validate: real search-engine presence, once deployed.** The platform emits
-  the SEO outputs (metadata, JSON-LD, sitemap, robots, RSS, canonical, hreflang),
-  but appearing in a search engine is only proven live: register the domain in
-  Google Search Console, submit `sitemap-index.xml`, confirm pages get indexed,
-  run a post URL through the Rich Results Test (BlogPosting + BreadcrumbList), and
-  check the site surfaces for representative queries. This is an operational check,
-  not a build output.
+- **Search-engine readiness — correctness validated locally; indexing pending
+  deploy.** The locally-testable half is done: Lighthouse (headless Chrome, mobile
+  emulation, against `npm run preview`) scored **100/100 on SEO, Performance,
+  Accessibility, and Best Practices** for both the home and a post, with no SEO
+  audit failures; and the post's JSON-LD parses cleanly as a valid `BlogPosting`
+  (all required fields) plus a `BreadcrumbList`. What still needs the live site:
+  actual indexing and ranking — register the domain in Google Search Console,
+  submit `sitemap-index.xml`, confirm pages get indexed, run a public URL through
+  the Rich Results Test, and check the site surfaces for representative queries.
+  Those are operational and cannot be verified before deploy.
 - **To validate: the design on a small mobile screen, across every page.** Home
   (hero + filter chip rows), post (cover, share row, giscus), tag/category, search
   modal, the consent banner, and the footer icon row should be checked at a narrow
