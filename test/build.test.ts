@@ -40,6 +40,22 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(has("og", "exemplo-so-em-portugues.png")).toBe(true);
   });
 
+  it("excludes drafts from the production build (REQ-007)", () => {
+    const slug = "exemplo-rascunho"; // ships with draft: true
+    expect(has("pt", "posts", slug, "index.html")).toBe(false); // no page
+    expect(read("pt", "index.html")).not.toContain(slug); // not in the home list
+    expect(read("sitemap-0.xml")).not.toContain(slug); // not in the sitemap
+    expect(read("pt", "rss.xml")).not.toContain(slug); // not in the feed
+    expect(read("pt", "categories", "Meta", "index.html")).not.toContain(slug); // not in its facet
+    expect(has("og", `${slug}.png`)).toBe(false); // no OG card generated
+  });
+
+  it("optimizes colocated cover images into responsive WebP (REQ-006)", () => {
+    const html = read("pt", "posts", "exemplo-bem-vindo-ao-buildando", "index.html");
+    expect(html).toMatch(/srcset="[^"]*\.webp[^"]*\s\d+w/); // responsive webp srcset
+    expect(readdirSync(join(dist, "_astro")).some((f) => f.endsWith(".webp"))).toBe(true);
+  });
+
   it("renders the home hero from markdown (REQ-034)", () => {
     // Markdown-rendered headings get slug ids; a hardcoded hero would not.
     expect(read("pt", "index.html")).toContain('<h1 id="buildando"');
@@ -103,7 +119,25 @@ describe.skipIf(!existsSync(dist))("build output", () => {
   });
 });
 
-// Source-level invariant, independent of dist.
+// Source-level invariants, independent of dist.
+describe("pure logic stays unit-testable (architecture)", () => {
+  it("the pure modules do not import astro:content", () => {
+    const pure = [
+      "lib/facet-filter.ts",
+      "lib/post-routes.ts",
+      "lib/seo.ts",
+      "i18n/index.ts",
+      "i18n/ui.ts",
+    ];
+    for (const f of pure) {
+      // an actual import, not a mention in a comment
+      expect(readFileSync(join(src, f), "utf8")).not.toMatch(
+        /from ["']astro:content["']/,
+      );
+    }
+  });
+});
+
 describe("identity confined to the config surface (REQ-030)", () => {
   it("the domain appears in src only inside config/site.ts", () => {
     const offenders: string[] = [];

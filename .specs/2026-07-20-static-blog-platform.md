@@ -400,28 +400,30 @@ tests, run by `npm test` and in CI before deploy):
   canonical points at the source; stale translation links degrade to a fallback;
   hreflang never lists fallback pages.
 - `test/facet-filter.test.ts` — the pure home-filter logic of `REQ-035`:
-  category/tag/date predicates, AND-across / OR-within, and URL round-tripping.
+  category/tag/month predicates, AND-across / OR-within, and URL round-tripping.
 - `test/build.test.ts` — assertions on `dist/` (root redirect, per-locale
-  homes/feeds, post SEO, markdown hero, English tagline, the untranslated-post
-  fallback page, the Pagefind index, the home filter bar and card metadata, and
-  the search trigger/modal on every page) plus a source scan enforcing `REQ-030`.
+  homes/feeds, post SEO incl. `BreadcrumbList`, dynamic OG card, draft exclusion,
+  responsive WebP covers, markdown hero, English tagline, the untranslated-post
+  fallback page, the Pagefind index, the home filter chips and card metadata, the
+  search trigger/modal, and the analytics/consent-clean default) plus source scans
+  enforcing `REQ-030` and that the pure modules never import `astro:content`.
 
-Requirements still marked "Test pending" below are covered by build inspection
-but not yet by a committed test. The remaining gaps are chiefly draft exclusion
-with a fixture, image-optimization assertions, and the architecture rules.
+A few requirements below stay build-inspected rather than test-covered where a
+committed test would add little (e.g. the exact rendered typography of `REQ-005`);
+these are marked "Test pending" and are a deliberate, small residue, not a gap.
 
 - `REQ-001`: Done. `src/content/config.ts` (`type: "content"`); a post is `src/content/posts/<slug>/index.md` with colocated images, e.g. `.../exemplo-bem-vindo-ao-buildando/`.
 - `REQ-002`: Done. The example post was added without touching any layout, route, or config. Test pending (fixture assertion).
 - `REQ-003`: Done. Zod schema in `src/content/config.ts`; Astro fails the build naming the entry and field. Test pending.
 - `REQ-004`: Done. Required `title`/`description`/`publishDate`; optionals with fallbacks, in `src/content/config.ts`.
 - `REQ-005`: Done. `.prose` styles in `src/styles/global.css`, applied in `src/layouts/PostLayout.astro`.
-- `REQ-006`: Done. `<Image widths=[...]>` in `PostLayout.astro`/`PostCard.astro`; `dist/_astro` carries a responsive `srcset` and WebP variants of the cover.
-- `REQ-007`: Done (code). `getPublishedPosts` in `src/lib/posts.ts` gates on `import.meta.env.PROD`. Test pending (no draft fixture yet).
+- `REQ-006`: Done. `<Image widths=[...]>` in `PostLayout.astro`/`PostCard.astro`; `dist/_astro` carries a responsive `srcset` and WebP variants of the cover. Tested in `test/build.test.ts` (webp `srcset` + emitted `.webp` assets).
+- `REQ-007`: Done. `getPublishedPosts` in `src/lib/posts.ts` gates on `import.meta.env.PROD`. A shipped `draft: true` fixture (`src/content/posts/exemplo-rascunho/`) is asserted absent from pages, the home, sitemap, RSS, its category facet, and the generated OG cards in `test/build.test.ts`; it stays visible in `astro dev`.
 - `REQ-008`: Done. `src/layouts/`, `src/components/Header.astro`, `Footer.astro`.
 - `REQ-009`: Done. `src/config/site.ts` (`SITE`, `BRAND`, `SOCIAL`, `NAV`, `GISCUS`, `ANALYTICS`); tokens injected by `BaseLayout.astro`.
 - `REQ-010`: Done. `dist/` is fully static.
 - `REQ-011`: Done. `src/components/BaseHead.astro`; verified in `dist` (title, description, canonical).
-- `REQ-012`: Done. `BaseHead.astro` + image resolution in `PostLayout.astro`. A post uses its `ogImage`/`cover` when present; otherwise a branded 1200×630 social card is generated at build for `/og/<slug>.png` by `src/pages/og/[...route].ts` (astro-og-canvas, no backend), pulling colors from `BRAND`. Verified `og:image` is absolute under the domain, the card renders the title + `Site · Category` with correct accented glyphs, and cover-bearing posts still use the cover.
+- `REQ-012`: Done. `BaseHead.astro` + image resolution in `PostLayout.astro`. A post uses its `ogImage`/`cover` when present; otherwise a branded 1200×630 social card is generated at build for `/og/<slug>.png` by `src/pages/og/[...route].ts` (astro-og-canvas, no backend), pulling colors from `BRAND`. The OG route uses `getPublishedPosts`, so drafts get no card. Verified `og:image` is absolute under the domain, the card renders the title + `Site · Category` with correct accented glyphs, and cover-bearing posts still use the cover.
 - `REQ-013`: Done. JSON-LD `BlogPosting`/`WebSite` in `BaseHead.astro`, plus `BreadcrumbList` when a trail is passed — posts emit Home › [Category] › Post (built in `PostLayout.astro`), and tag/category pages emit Home › Tags › #tag and Home › Category. Verified in `dist`.
 - `REQ-014`: Done. `@astrojs/sitemap`; `dist/sitemap-index.xml`.
 - `REQ-015`: Done. `src/pages/robots.txt.ts`; `dist/robots.txt` references the sitemap.

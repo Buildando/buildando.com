@@ -2,8 +2,8 @@
 // at build time — no backend. Only posts WITHOUT a `cover` get one; posts with a
 // cover use the cover image. Output: /og/<slug>.png.
 import { OGImageRoute } from "astro-og-canvas";
-import { getCollection } from "astro:content";
 import { BRAND, SITE } from "../../config/site";
+import { getPublishedPosts } from "../../lib/posts";
 
 const hex = (h: string): [number, number, number] => [
   parseInt(h.slice(1, 3), 16),
@@ -12,7 +12,8 @@ const hex = (h: string): [number, number, number] => [
 ];
 const c = BRAND.colors.dark;
 
-const posts = await getCollection("posts");
+// getPublishedPosts excludes drafts in production (REQ-007), so no card leaks.
+const posts = await getPublishedPosts();
 const pages = Object.fromEntries(
   posts.filter((p) => !p.data.cover).map((p) => [p.slug, p.data]),
 );
