@@ -3,7 +3,7 @@ title: "Rascunho de exemplo (não publicado)"
 description: "Post marcado como draft para demonstrar que rascunhos aparecem só no dev e nunca em produção."
 lang: pt
 publishDate: 2026-07-18
-category: "Meta"
+category: "Guia"
 tags:
   - exemplo
   - rascunho

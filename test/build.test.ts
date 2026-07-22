@@ -24,7 +24,7 @@ describe.skipIf(!existsSync(dist))("build output", () => {
   });
 
   it("emits full SEO on a post page (REQ-011–013, 018)", () => {
-    const html = read("pt", "posts", "exemplo-bem-vindo-ao-buildando", "index.html");
+    const html = read("pt", "posts", "o-que-e-o-buildando", "index.html");
     expect(html).toMatch(/<link rel="canonical" href="https:\/\/buildando\.com/);
     expect(html).toContain('property="og:image" content="https://buildando.com/');
     expect(html).toContain('name="twitter:card"');
@@ -33,11 +33,11 @@ describe.skipIf(!existsSync(dist))("build output", () => {
   });
 
   it("generates a dynamic OG card for a cover-less post (REQ-012)", () => {
-    const html = read("pt", "posts", "exemplo-so-em-portugues", "index.html");
+    const html = read("pt", "posts", "criando-posts", "index.html");
     expect(html).toContain(
-      'property="og:image" content="https://buildando.com/og/exemplo-so-em-portugues.png"',
+      'property="og:image" content="https://buildando.com/og/criando-posts.png"',
     );
-    expect(has("og", "exemplo-so-em-portugues.png")).toBe(true);
+    expect(has("og", "criando-posts.png")).toBe(true);
   });
 
   it("excludes drafts from the production build (REQ-007)", () => {
@@ -46,12 +46,12 @@ describe.skipIf(!existsSync(dist))("build output", () => {
     expect(read("pt", "index.html")).not.toContain(slug); // not in the home list
     expect(read("sitemap-0.xml")).not.toContain(slug); // not in the sitemap
     expect(read("pt", "rss.xml")).not.toContain(slug); // not in the feed
-    expect(read("pt", "categories", "Meta", "index.html")).not.toContain(slug); // not in its facet
+    expect(read("pt", "categories", "Guia", "index.html")).not.toContain(slug); // not in its facet
     expect(has("og", `${slug}.png`)).toBe(false); // no OG card generated
   });
 
   it("optimizes colocated cover images into responsive WebP (REQ-006)", () => {
-    const html = read("pt", "posts", "exemplo-bem-vindo-ao-buildando", "index.html");
+    const html = read("pt", "posts", "o-que-e-o-buildando", "index.html");
     expect(html).toMatch(/srcset="[^"]*\.webp[^"]*\s\d+w/); // responsive webp srcset
     expect(readdirSync(join(dist, "_astro")).some((f) => f.endsWith(".webp"))).toBe(true);
   });
@@ -69,12 +69,12 @@ describe.skipIf(!existsSync(dist))("build output", () => {
   });
 
   it("serves an untranslated post under the other locale with translated chrome (REQ-033)", () => {
-    const fb = read("en", "posts", "exemplo-so-em-portugues", "index.html");
+    const fb = read("en", "posts", "criando-posts", "index.html");
     expect(fb).toContain('<html lang="en"');
     expect(fb).toContain('aria-label="Main"'); // nav chrome in English (nav.aria)
     expect(fb).toContain('<article lang="pt-BR"'); // body marked Portuguese
     expect(fb).toContain(
-      'rel="canonical" href="https://buildando.com/pt/posts/exemplo-so-em-portugues/"',
+      'rel="canonical" href="https://buildando.com/pt/posts/criando-posts/"',
     );
   });
 
@@ -95,7 +95,7 @@ describe.skipIf(!existsSync(dist))("build output", () => {
   });
 
   it("shows share buttons on a post (REQ-040)", () => {
-    const html = read("pt", "posts", "exemplo-bem-vindo-ao-buildando", "index.html");
+    const html = read("pt", "posts", "o-que-e-o-buildando", "index.html");
     expect(html).toContain("x.com/intent/tweet");
     expect(html).toContain("wa.me/?text=");
     expect(html).toContain("share-copy"); // copy-link button
@@ -112,7 +112,7 @@ describe.skipIf(!existsSync(dist))("build output", () => {
   });
 
   it("exposes search from the layout on every page (REQ-036)", () => {
-    for (const page of ["pt/index.html", "en/index.html", "pt/posts/exemplo-so-em-portugues/index.html"]) {
+    for (const page of ["pt/index.html", "en/index.html", "pt/posts/criando-posts/index.html"]) {
       const html = readFileSync(join(dist, page), "utf8");
       expect(html).toContain('class="search-trigger"');
       expect(html).toContain('id="search-dialog"');
