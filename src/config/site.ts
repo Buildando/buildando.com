@@ -91,7 +91,6 @@ export const SOCIAL = [
  */
 export const NAV = [
   { key: "nav.home", path: "/" },
-  { key: "nav.search", path: "/search" },
   { key: "nav.about", path: "/about" },
 ] as const;
 

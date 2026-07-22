@@ -5,7 +5,6 @@
 export const ui: Record<string, Record<string, string>> = {
   pt: {
     "nav.home": "Início",
-    "nav.search": "Buscar",
     "nav.about": "Sobre o Autor",
     "nav.aria": "Principal",
     "filter.title": "Filtrar",
@@ -58,7 +57,6 @@ export const ui: Record<string, Record<string, string>> = {
     "site.description":
       "Software development best practices, object-oriented design, and the craft of writing good code.",
     "nav.home": "Home",
-    "nav.search": "Search",
     "nav.about": "About",
     "nav.aria": "Main",
     "filter.title": "Filter",
