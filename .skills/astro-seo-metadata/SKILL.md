@@ -43,7 +43,10 @@ hashed absolute); a string override → pass through; else a site default.
 ## RSS
 
 `@astrojs/rss` in `src/pages/rss.xml.js`: pass `context.site`, map published
-posts to items with absolute-resolvable `link`, `pubDate`, `description`.
+posts to items with absolute-resolvable `link`, `pubDate`, `description`. On an
+i18n site the feed is **per locale** (`/pt/rss.xml`, `/en/rss.xml`) — one route
+per language, each listing only that language's posts — so there is no root
+`/rss.xml`; point autodiscovery and any tests at the localized paths.
 
 ## Performance is SEO
 

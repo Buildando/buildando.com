@@ -54,5 +54,9 @@ step so `dist/` exists.
   from markdown rather than a hardcoded element.
 - Source scan for the config-only identity rule: grep `src/` for the domain and
   assert it appears only in the config surface.
+- **Derive expected URLs from the config origin, don't hardcode them.** Import the
+  config (`const origin = SITE.url`) and assert against `` `${origin}/pt/…` `` — and
+  scan for `new URL(SITE.url).host` rather than a literal domain. A fork that
+  changes the domain then keeps the suite green with zero test edits.
 - Draft exclusion needs a `draft: true` fixture and an assertion it is absent
   from pages, feeds, sitemap, and the search index.
