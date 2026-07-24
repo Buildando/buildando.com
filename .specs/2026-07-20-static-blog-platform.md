@@ -15,7 +15,7 @@ The stack is **Astro**. It emits static HTML with zero client JavaScript by defa
 
 The blog has **no backend**. Everything the reader needs — pages, search, feeds, structured data — is produced at build time and served as static files. The two features that would normally imply a server, full-text search and discussions, are handled without one: search by a build-time static index (Pagefind), discussions by delegating to GitHub Discussions through the giscus embed.
 
-Hosting stays on HostGator. HostGator has no official CLI; a static site is published to `public_html` over SSH/rsync (SSH is on port `2222` and must be enabled for the plan through support) or, failing that, over FTP. Deployment is automated from GitHub Actions.
+Hosting is cPanel-style shared hosting (the original blog runs on HostGator). Such hosts ship no official CLI; a static site is published to `public_html` from GitHub Actions over **FTPS**, or over **rsync-over-SSH** where the plan provides an SSH shell. On shared plans the SSH shell is frequently disabled and only enabled through a support request, so FTPS is the transport that works without waiting — and is the one this project shipped on.
 
 Reference facts, to be re-verified at implementation time before pinning:
 
@@ -23,7 +23,7 @@ Reference facts, to be re-verified at implementation time before pinning:
 - `@astrojs/rss` and `@astrojs/sitemap` are the official RSS and sitemap integrations.
 - Pagefind is a static, build-time full-text search library designed for exactly this: it indexes the built HTML and ships a small client that needs no server.
 - giscus embeds a GitHub Discussions thread; it requires the backing repository to be **public**, to have **Discussions enabled**, and to have the **giscus GitHub App** installed, and it reads its `repoId` and `categoryId` from the giscus configurator.
-- HostGator SSH is port `2222`, disabled by default on shared plans, enabled via support.
+- cPanel SSH is commonly on a non-standard port (`2222` on HostGator) with the **shell** disabled by default on shared plans; enabling it needs a support request. Key auth can succeed while the shell is still off (login prints "Shell access is not enabled"), so rsync cannot run until support enables it. FTPS needs no shell.
 
 ## Problem
 
@@ -39,7 +39,7 @@ SEO is not an afterthought bolted on at the end; it is a set of build outputs �
 
 ## Goals
 
-- Replace WordPress with a statically generated Astro blog served from HostGator, keeping the `buildando.com` name and domain.
+- Replace WordPress with a statically generated Astro blog served from shared static hosting, keeping the `buildando.com` name and domain.
 - Make publishing a post a content-only action: add one folder of markdown, images, and frontmatter; change no code and no config.
 - Validate every post's frontmatter at build time and fail the build on malformed content rather than shipping it broken.
 - Render markdown to HTML that inherits the site's typography and CSS, with no per-post styling required.
@@ -47,7 +47,7 @@ SEO is not an afterthought bolted on at the end; it is a set of build outputs �
 - Provide faceted navigation by tag and category, and full-text search, entirely client-side with no backend.
 - Embed each post's GitHub Discussions thread through giscus.
 - Keep all brand, design, and integration identity in one configuration surface, so a fork is a config edit plus a logo swap.
-- Deploy automatically from GitHub Actions to HostGator `public_html`, with no secret committed to the repository.
+- Deploy automatically from GitHub Actions to the host's `public_html`, with no secret committed to the repository.
 
 ## Non-Goals
 
@@ -56,7 +56,7 @@ SEO is not an afterthought bolted on at the end; it is a set of build outputs �
 - Build a comment system. Discussion is delegated to GitHub Discussions via giscus and is not reimplemented.
 - Build a server-side or hosted search service. Search is a build-time static index only.
 - Design the final visual identity (logo, palette, type scale). The platform exposes these as configurable theme parameters; the actual visual design is a separate, later effort. This spec guarantees the parameters exist and are honored, not what their values are.
-- Configure HostGator itself (enabling SSH, DNS, TLS). The spec states the deployment contract the platform targets; performing the account changes is an operational task, tracked in Risks.
+- Configure the hosting account itself (SSH/FTP access, DNS, TLS). The spec states the deployment contract the platform targets; performing the account changes is an operational task, tracked in Risks.
 - Pin exact dependency versions. Versions are verified and pinned at implementation time; this spec names tools, not versions.
 
 ## Requirements
@@ -117,9 +117,9 @@ SEO is not an afterthought bolted on at the end; it is a set of build outputs �
 
 ### Deployment
 
-- `REQ-025`: A GitHub Actions workflow shall build the site and deploy the build output to HostGator `public_html` on push to the default branch.
+- `REQ-025`: A GitHub Actions workflow shall build the site and deploy the build output to the configured host's `public_html` on push to the default branch.
 - `REQ-026`: Deployment shall transfer only the build output, shall authenticate using credentials held in GitHub Actions secrets, and shall place no secret — SSH key, password, host — in the repository.
-- `REQ-027`: The primary deployment path shall be rsync over SSH on port `2222`; an FTP-based fallback shall be documented for plans without SSH.
+- `REQ-027`: The workflow shall support two transports to `public_html` — **FTPS** (no shell required) and **rsync over SSH** (where the plan provides an SSH shell) — selectable per host without changing the build. On shared plans whose SSH shell is disabled, FTPS is the operative path.
 - `REQ-028`: The site shall build and be previewable locally with a single documented command each, producing output identical in shape to what the workflow deploys.
 
 ### Forkability
@@ -235,13 +235,13 @@ The workflow builds on push to the default branch and transfers only the build o
 | --- | --- |
 | Trigger | Push to the default branch. |
 | Build | Install, then build; output is a single static directory. |
-| Transfer (primary) | rsync over SSH to `public_html`, host on port `2222`. |
-| Transfer (fallback) | FTP sync, for plans without SSH (`REQ-027`). |
-| Secrets | SSH host, user, and private key (or FTP credentials) in GitHub Actions secrets only. |
+| Transfer (shared plans) | FTPS sync to `public_html` — no shell required; the working path when the SSH shell is disabled (`REQ-027`). |
+| Transfer (with SSH shell) | rsync over SSH to `public_html` (host on a non-standard port, e.g. `2222`). |
+| Secrets | FTPS host/user/password/target dir (or SSH host/user/key) in GitHub Actions secrets only — repository or a named Environment. |
 | Repository | Contains no host, no credential, no key (`REQ-026`). |
 | Server config | An `.htaccess` in the output sets caching, compression, and HTTPS canonicalization; redirects from old WordPress URLs are out of scope here (see Non-Goals). |
 
-SSH on HostGator shared hosting is disabled by default and on port `2222`; enabling it is an operational precondition, recorded in Risks. When SSH cannot be enabled, the FTP fallback path applies without changing the build.
+On shared cPanel hosting the SSH shell is disabled by default (key auth can pass while the shell is off), so FTPS — which needs no shell — is the path this project deploys on; rsync-over-SSH applies unchanged where a plan has a shell. Secrets may live in a named GitHub Environment, in which case the job must declare that `environment` to read them (recorded in Risks).
 
 ### giscus / GitHub Discussions Contract
 
@@ -308,12 +308,12 @@ flowchart LR
     Push[Push to default branch] --> CI[GitHub Actions]
     CI --> Build[astro build + pagefind index]
     Build --> Dist[static output dir]
-    Dist --> Rsync[rsync over SSH :2222]
-    Rsync --> HG[HostGator public_html]
-    Dist -. fallback .-> FTP[FTP sync] --> HG
+    Dist --> FTPS[FTPS sync]
+    FTPS --> HG[host public_html]
+    Dist -. when SSH shell exists .-> Rsync[rsync over SSH] --> HG
 ```
 
-The workflow is the only thing that touches HostGator. It holds the host, user, and key in GitHub Actions secrets and transfers only the built directory (`REQ-026`). rsync sends only changed files, which keeps deploys cheap on shared hosting; FTP is the fallback for a plan where SSH cannot be enabled (`REQ-027`). An `.htaccess` shipped in the output configures compression, caching, and HTTPS canonicalization at the Apache layer HostGator runs.
+The workflow is the only thing that touches the host. It holds the credentials in GitHub Actions secrets and transfers only the built directory (`REQ-026`). FTPS syncs incrementally — a server-side state file tracks what changed — which keeps deploys cheap on shared hosting and needs no shell; rsync-over-SSH is the equivalent where a plan has a shell (`REQ-027`). An `.htaccess` shipped in the output configures compression, caching, and HTTPS canonicalization at the Apache layer cPanel runs.
 
 ## Data and Persistence
 
@@ -324,13 +324,16 @@ The platform persists nothing at runtime. All state is either in the repository 
 There is no running service to observe. The signals are:
 
 - **Build**: the CI build log is the primary signal. A malformed post fails the build loudly (`REQ-003`), so broken content is observed before it ships, not after.
-- **Deploy**: the workflow's rsync/FTP step reports what it transferred; a failed transfer fails the workflow.
+- **Deploy**: the workflow's FTPS (or rsync) step reports what it transferred; a failed transfer fails the workflow.
 - **Production**: optional privacy-friendly analytics, disabled by default and enabled only by setting an id in the configuration surface, provides traffic signal without a backend. Google Search Console is the external SEO signal and is an operational setup step, not a build output.
 
 ## Risks and Open Questions
 
-- **SSH must be enabled on the HostGator plan.** It is off by default on shared hosting and lives on port `2222`, enabled only through support. Until it is, the primary rsync deploy path cannot run and the FTP fallback (`REQ-027`) is the path. This is an operational precondition, not a code task, and it blocks first deploy rather than development.
-- **HostGator has no official CLI.** "Install a CLI for HostGator" has no real target; there is no first-party tool. What exists is SSH/rsync and FTP, both standard and both used here. The automation lives in the GitHub Actions workflow, not in a vendor CLI. This resolves the original request rather than leaving it open: the CLI does not exist, so the workflow is the answer.
+- **Resolved — the deploy shipped over FTPS.** On the shared plan the SSH shell was disabled and not enabled in time: key auth succeeded but rsync could not run. The deploy switched to FTPS (`REQ-027`), which needs no shell, and the site went live. rsync-over-SSH stays available for any plan that has a shell. Enabling SSH is an operational task, not a code one, and no longer blocks deploy.
+- **cPanel shared hosts have no official CLI.** "Install a CLI for HostGator" has no real target; there is no first-party tool. What exists is FTPS and SSH/rsync, both standard. The automation lives in the GitHub Actions workflow, not in a vendor CLI — the workflow is the answer.
+- **FTP-account directory gotcha (operational).** A dedicated cPanel FTP account's directory defaults to a subfolder of the home, **not** `public_html`, and many cPanel builds cannot edit it after creation — the account must be deleted and recreated with the directory set to `public_html`, or the upload lands outside the web root and every URL 404s. Verify where files land by probing a URL after the first deploy.
+- **Environment secrets need the job bound to the environment.** When the deploy credentials live in a named GitHub Environment rather than repository secrets, the job must declare `environment: <name>` or it reads them as empty — a silent "connected but nothing worked" failure.
+- **Cutover over an existing site is a one-time wipe.** Replacing a live install (e.g. WordPress) means backing up, then a single `dangerous-clean-slate` deploy that clears `public_html` before uploading, with the flag removed immediately after so normal deploys stay incremental. Deleting a full WordPress over FTPS takes 10–30 min. Old URLs then 404 unless `301`s are added — out of scope here by choice.
 - **giscus requires a public repository with Discussions enabled and the giscus App installed.** If the blog's source is private, either a separate public repository backs discussions or the discussion feature cannot be used as specified. The repository choice is a precondition for `REQ-022`.
 - **giscus requires readers to have a GitHub account to comment.** For a developer-audience blog this is largely acceptable and is the price of not running a comment backend. It does exclude non-GitHub readers from commenting, which a general-audience blog might not accept.
 - **Pagefind is the assumed search library but is one of several static options** (Lunr, a prebuilt Fuse.js index, Algolia's free tier). Pagefind is chosen because it scales to many posts without shipping the whole index to every visitor and needs no external service. The choice should be re-confirmed at implementation; the requirement (`REQ-020`, `REQ-021`) is backend-free client search, not Pagefind specifically.
@@ -464,9 +467,9 @@ these are marked "Test pending" and are a deliberate, small residue, not a gap.
 - `REQ-043`: Done. `INTEGRATIONS` in `src/config/site.ts` names the providers. Three ports under `src/integrations/`: `Comments.astro` (pick-one: `comments/giscus/`, `comments/utterances/`), `Search.astro` (pick-one: `search/pagefind/`, used by both the modal and the `/search` page), and `Analytics.astro` (multi-enable: `analytics/plausible/`, `analytics/google-analytics/`, `analytics/adsense/`, plus a provider-agnostic `analytics/ConsentBanner.astro`). Consumers import ports, never providers. Contributor guide in `src/integrations/README.md`. Verified: default renders nothing; swapping comments to `"utterances"` swaps the widget with no other change; the analytics port stays consent-clean by default and gates GA/AdSense behind the consent queue; only selected/enabled adapters ship.
 - `REQ-023`: Done. `GISCUS` in `src/config/site.ts`.
 - `REQ-024`: Done. `data-mapping="pathname"` with a `data-term` override driven by the post's `discussion` frontmatter.
-- `REQ-025`: Done (code). `.github/workflows/deploy.yml`. Live run pending secrets + enabled SSH.
-- `REQ-026`: Done (code). Workflow reads only Actions secrets; `.gitignore` excludes keys/`.env`. Live verification pending.
-- `REQ-027`: Done. rsync-over-SSH:2222 in the workflow; FTP fallback documented in `README.md`.
+- `REQ-025`: Done and **live**. `.github/workflows/deploy.yml` builds, tests, and deploys on push. Proven end to end on the fork (`buildando.com`): build + tests + FTPS transfer to `public_html`, verified serving HTTP 200.
+- `REQ-026`: Done and verified live. Workflow reads only Actions/Environment secrets (FTPS credentials in a `HostGator` environment); `.gitignore` excludes keys/`.env`; no credential in the repo.
+- `REQ-027`: Done. The shipped transport is **FTPS** (`SamKirkland/FTP-Deploy-Action`, incremental sync) because the shared plan's SSH shell is disabled; rsync-over-SSH stays documented for plans with a shell — both in the `cpanel-static-deploy` skill and `README.md`.
 - `REQ-028`: Done. `npm run build` and `npm run dev`/`preview` in `package.json`; build verified, dev server verified serving HTTP 200.
 - `REQ-029`: Done. `README.md` fork procedure; example post exercises frontmatter, colocated cover, tags, category, and the discussion embed.
 - `REQ-030`: Done (code). Identity confined to `src/config/site.ts` by construction. Test pending (grep/architecture assertion that no identity string appears elsewhere in `src`).
@@ -493,6 +496,8 @@ emitted as a responsive `srcset` with WebP variants. Fonts are self-hosted
 (Fontsource, bundled into `dist/_astro`), with no external font request. The dev
 server served the home page with HTTP 200.
 
-Not verified: a live deploy to HostGator (needs SSH enabled and Actions secrets),
-the live giscus embed (needs a public repo with Discussions and real ids), and
-the automated test suite in Test Strategy, which is not yet written.
+Not verified at that 2026-07-20 snapshot: a live deploy, the live giscus embed,
+and the automated test suite. Since resolved: the deploy shipped live over FTPS
+to the fork (`buildando.com`, 2026-07-24), and the test suite exists and runs
+green. Still open: the live giscus embed (needs a public repo with Discussions
+and real ids).
